@@ -1,0 +1,5 @@
+{
+  "folder": "vault/daily",
+  "format": "YYYY-MM-DD",
+  "template": "vault/templates/daily.md"
+}

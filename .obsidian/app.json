@@ -1,0 +1,8 @@
+{
+  "attachmentFolderPath": "vault/attachments",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "vault",
+  "alwaysUpdateLinks": true,
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest"
+}
