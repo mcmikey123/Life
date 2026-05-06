@@ -1,4 +1,5 @@
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
+import NewItemForm from "../_components/NewItemForm";
 
 export const dynamic = "force-dynamic";
 
@@ -58,37 +59,33 @@ export default function RemindersPage() {
   return (
     <>
       <h2>Reminders</h2>
-      <p className="subtitle">All scheduled pings — standalone, plus rolled up from events and project tasks.</p>
+      <p className="subtitle">All scheduled pings · {flat.length} total</p>
+
+      <NewItemForm kind="reminder" />
 
       {flat.length === 0 ? (
-        <div className="empty">No reminders scheduled.</div>
+        <div className="empty">No reminders scheduled</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Fire at</th>
-              <th>Title</th>
-              <th>Channels</th>
-              <th>Status</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flat.map((r, i) => (
-              <tr key={i}>
-                <td>{r.fire_at || "—"}</td>
-                <td>{r.title}</td>
-                <td>{r.channels.map((c) => <span key={c} className="tag">{c}</span>)}</td>
-                <td>
-                  <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>
-                    {r.status}
-                  </span>
-                </td>
-                <td><span className="meta">{r.source}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <div className="section-title">Queue</div>
+          {flat.map((r, i) => (
+            <div className="reminder-row" key={i}>
+              <div className="reminder-fire">{r.fire_at || "—"}</div>
+              <div>
+                <div className="reminder-title">{r.title}</div>
+                <div className="skill-meta" style={{ marginTop: 4 }}>{r.source}</div>
+              </div>
+              <div>
+                {r.channels.map((c) => <span key={c} className="tag">{c}</span>)}
+              </div>
+              <div>
+                <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>
+                  {r.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </>
       )}
     </>
   );

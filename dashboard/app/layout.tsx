@@ -1,44 +1,55 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
+import SubTabs from "./_components/SubTabs";
+import XpBar from "./_components/XpBar";
 
 export const metadata: Metadata = {
-  title: "Life",
+  title: "Life Dashboard",
   description: "Personal life dashboard",
 };
 
-const phase1 = [
-  { href: "/events", label: "Events" },
-  { href: "/reminders", label: "Reminders" },
-  { href: "/projects", label: "Projects" },
-  { href: "/habits", label: "Habits" },
-];
-const phase2 = [
-  { href: "/finance", label: "Finance" },
-  { href: "/health", label: "Health" },
+const topNav = [
+  { label: "Journal" },
+  { label: "Activities" },
+  { label: "Life Dashboard", active: true },
+  { label: "Map" },
+  { label: "Store" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=IM+Fell+English:ital@0;1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
-        <div className="layout">
-          <aside className="sidebar">
-            <h1>Life</h1>
-            <nav>
-              <Link href="/">Overview</Link>
-              <div className="group-label">Phase 1</div>
-              {phase1.map((l) => (
-                <Link key={l.href} href={l.href}>{l.label}</Link>
-              ))}
-              <div className="group-label">Phase 2</div>
-              {phase2.map((l) => (
-                <Link key={l.href} href={l.href}>{l.label}</Link>
-              ))}
-            </nav>
-          </aside>
-          <main>{children}</main>
-        </div>
+        <div className="world-bg" aria-hidden />
+
+        <header className="top-nav">
+          <nav className="nav-items">
+            {topNav.map((n) => (
+              <div key={n.label} className={`nav-item${n.active ? " active" : ""}`}>
+                {n.label}
+                {n.active && <span className="diamond" />}
+              </div>
+            ))}
+          </nav>
+          <div className="settings" title="Settings">⚙</div>
+        </header>
+
+        <main className="screen">
+          <section className="panel">
+            <SubTabs />
+            <div className="content">{children}</div>
+          </section>
+        </main>
+
+        <XpBar level={15} current={2854} max={4200} />
       </body>
     </html>
   );

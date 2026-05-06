@@ -1,6 +1,15 @@
 import { getProjects } from "@/lib/vault";
+import NewItemForm from "../_components/NewItemForm";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_LABEL: Record<string, string> = {
+  active: "In Progress",
+  planned: "Planned",
+  planning: "Planning",
+  done: "Complete",
+  paused: "Paused",
+};
 
 export default function ProjectsPage() {
   const projects = getProjects();
@@ -8,62 +17,70 @@ export default function ProjectsPage() {
   return (
     <>
       <h2>Projects</h2>
-      <p className="subtitle">Ongoing work, tasks, and project costs (rolled into Finance).</p>
+      <p className="subtitle">Active campaigns · {projects.length} tracked</p>
 
-      {projects.length === 0 && <div className="empty">No projects yet.</div>}
+      <NewItemForm kind="project" />
 
-      {projects.map((p) => {
-        const open = (p.tasks ?? []).filter((t) => !t.done);
-        const done = (p.tasks ?? []).filter((t) => t.done);
-        const actual = (p.costs ?? []).reduce((s, c) => s + (c.amount || 0), 0);
-        const est = p.budget?.estimated ?? 0;
-        const budgetPct = est ? Math.round((actual / est) * 100) : 0;
-        const overBudget = actual > est && est > 0;
+      {projects.length === 0 ? (
+        <div className="empty">No projects yet</div>
+      ) : (
+        <div className="project-grid">
+          {projects.map((p) => {
+            const total = (p.tasks ?? []).length;
+            const done = (p.tasks ?? []).filter((t) => t.done).length;
+            const taskPct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-        return (
-          <div className="card" key={p.slug}>
-            <h3>{p.title}</h3>
-            <div className="meta">
-              <span className={`badge ${p.status === "active" ? "good" : ""}`}>{p.status}</span>
-              {p.priority && <span className="tag">priority: {p.priority}</span>}
-              {p.deadline && <span className="tag">due {p.deadline}</span>}
-            </div>
+            const actual = (p.costs ?? []).reduce((s, c) => s + (c.amount || 0), 0);
+            const est = p.budget?.estimated ?? 0;
+            const budgetPct = est ? Math.round((actual / est) * 100) : 0;
 
-            {est > 0 && (
-              <div style={{ marginTop: 10, fontSize: 14 }}>
-                Budget:{" "}
-                <span className={overBudget ? "badge bad" : "badge"}>
-                  {actual.toFixed(2)} / {est.toFixed(2)} {p.budget?.currency} ({budgetPct}%)
-                </span>
+            const xpReward = total > 0 ? total * 50 : 100;
+            const status = STATUS_LABEL[p.status] || p.status;
+
+            return (
+              <div className="project-card" key={p.slug}>
+                <div className="project-status">{status}</div>
+                <div className="project-title">{p.title}</div>
+
+                <div className="project-meta">
+                  {p.deadline ? `Due ${p.deadline}` : "No deadline"}
+                  {p.priority ? ` · ${p.priority}` : ""}
+                </div>
+
+                <div className="project-progress">
+                  <div className="progress-bar-project">
+                    <div className="progress-fill-project" style={{ width: `${taskPct}%` }} />
+                  </div>
+                  <div className="progress-percent">
+                    {taskPct}% · {done}/{total} tasks
+                  </div>
+                </div>
+
+                {est > 0 && (
+                  <div className="project-progress">
+                    <div className="progress-bar-project">
+                      <div
+                        className="progress-fill-project"
+                        style={{
+                          width: `${Math.min(100, budgetPct)}%`,
+                          background: budgetPct > 100
+                            ? "linear-gradient(90deg, #e07e7e, #ffb1b1)"
+                            : undefined,
+                        }}
+                      />
+                    </div>
+                    <div className="progress-percent">
+                      ${actual.toFixed(0)} / ${est.toFixed(0)} {p.budget?.currency || ""}
+                    </div>
+                  </div>
+                )}
+
+                <div className="project-reward">+ {xpReward} XP</div>
               </div>
-            )}
-
-            {open.length > 0 && (
-              <>
-                <div className="section-divider" style={{ marginTop: 14 }}>Open tasks</div>
-                {open.map((t) => (
-                  <div className="task" key={t.id}>
-                    <span>☐</span>
-                    <span>{t.title}</span>
-                    {t.deadline && <span className="deadline">due {t.deadline}</span>}
-                  </div>
-                ))}
-              </>
-            )}
-            {done.length > 0 && (
-              <>
-                <div className="section-divider" style={{ marginTop: 14 }}>Completed</div>
-                {done.map((t) => (
-                  <div className="task done" key={t.id}>
-                    <span>☑</span>
-                    <span>{t.title}</span>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }
