@@ -58,6 +58,22 @@ For voice flows, prefer doing it with sensible defaults over asking clarifying q
 If a date/time is ambiguous, pick the most likely interpretation (next occurrence) and
 mention what you assumed in your reply. The user can always edit the file in Obsidian.
 
+### Always commit + push after a voice add
+
+The deployed dashboard (Vercel) and the scheduler (GitHub Actions) both read the vault
+from the `main` branch on GitHub. After writing the markdown file:
+
+1. `git add <the new/edited file>`
+2. `git commit -m "<short summary>"` — single line, describe the entry
+3. `git push origin main`
+
+Vercel redeploys automatically (~30s). The next scheduler tick (≤5 min) picks up the
+new reminders. If `git push` fails because of a network blip, retry with the standard
+exponential backoff (2s, 4s, 8s, 16s).
+
+If the user has multiple changes queued, batch them in one commit. If the user asks you
+NOT to push (e.g. "draft this for me"), respect that and just leave it locally.
+
 ### Habit adherence
 
 Logging done/skip writes a row to `vault/habits/<slug>.log.md` like:

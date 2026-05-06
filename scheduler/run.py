@@ -21,7 +21,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scheduler import notify, vault
 
 STATE_FILE = Path(os.environ.get("SCHEDULER_STATE", Path(__file__).resolve().parent / ".state.json"))
-WINDOW = timedelta(minutes=5)
+# Fire any reminder due within the last WINDOW. Set wide enough to absorb cron
+# jitter (GitHub Actions cron can be several minutes late). State dedup ensures
+# each reminder still fires exactly once.
+WINDOW = timedelta(minutes=int(os.environ.get("SCHEDULER_WINDOW_MINUTES", "15")))
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("scheduler")
