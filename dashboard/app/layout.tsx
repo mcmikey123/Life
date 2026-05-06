@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import MusicPlayer from "@/components/MusicPlayer";
+import Feed from "@/components/Feed";
 import { getConfig } from "@/lib/vault";
 
 export const metadata: Metadata = {
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </aside>
           <main>{children}</main>
         </div>
+        <Feed />
       </body>
     </html>
   );
