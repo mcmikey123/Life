@@ -4,19 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
+  { href: "/character", label: "Character" },
   { href: "/events", label: "Events" },
-  { href: "/health", label: "Health" },
-  { href: "/finance", label: "Finance" },
   { href: "/reminders", label: "Reminders" },
   { href: "/projects", label: "Projects" },
   { href: "/habits", label: "Habits" },
+  { href: "/finance", label: "Finance" },
+  { href: "/health", label: "Health" },
 ];
 
 export default function SubTabs() {
-  const pathname = usePathname() || "/events";
+  const pathname = usePathname() || "/character";
   const activeHref =
     TABS.find((t) => pathname === t.href || pathname.startsWith(t.href + "/"))?.href ||
-    "/events";
+    "/character";
 
   return (
     <div className="sub-tabs">

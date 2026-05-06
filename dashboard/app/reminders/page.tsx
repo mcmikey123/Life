@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
@@ -9,6 +10,7 @@ type FlatReminder = {
   fire_at: string;
   channels: string[];
   status: string;
+  href?: string;
 };
 
 export default function RemindersPage() {
@@ -25,6 +27,7 @@ export default function RemindersPage() {
       fire_at: r.fire_at,
       channels: r.channels || [],
       status: r.status,
+      href: `/reminders/${r.slug}`,
     });
   }
 
@@ -36,6 +39,7 @@ export default function RemindersPage() {
         fire_at: `${e.date} ${e.time || ""}`.trim(),
         channels: r.channels || [],
         status: "scheduled",
+        href: `/events/${e.slug}`,
       });
     }
   }
@@ -49,6 +53,7 @@ export default function RemindersPage() {
           fire_at: t.deadline || "",
           channels: r.channels || [],
           status: t.done ? "done" : "scheduled",
+          href: `/projects/${p.slug}`,
         });
       }
     }
@@ -59,7 +64,7 @@ export default function RemindersPage() {
   return (
     <>
       <h2>Reminders</h2>
-      <p className="subtitle">All scheduled pings · {flat.length} total</p>
+      <p className="subtitle">All scheduled pings · {flat.length} total · tap a row to open the source</p>
 
       <NewItemForm kind="reminder" />
 
@@ -68,23 +73,30 @@ export default function RemindersPage() {
       ) : (
         <>
           <div className="section-title">Queue</div>
-          {flat.map((r, i) => (
-            <div className="reminder-row" key={i}>
-              <div className="reminder-fire">{r.fire_at || "—"}</div>
-              <div>
-                <div className="reminder-title">{r.title}</div>
-                <div className="skill-meta" style={{ marginTop: 4 }}>{r.source}</div>
+          {flat.map((r, i) => {
+            const row = (
+              <div className="reminder-row">
+                <div className="reminder-fire">{r.fire_at || "—"}</div>
+                <div>
+                  <div className="reminder-title">{r.title}</div>
+                  <div className="skill-meta" style={{ marginTop: 4 }}>{r.source}</div>
+                </div>
+                <div>
+                  {r.channels.map((c) => <span key={c} className="tag">{c}</span>)}
+                </div>
+                <div>
+                  <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>
+                    {r.status}
+                  </span>
+                </div>
               </div>
-              <div>
-                {r.channels.map((c) => <span key={c} className="tag">{c}</span>)}
-              </div>
-              <div>
-                <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>
-                  {r.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+            return r.href ? (
+              <Link href={r.href} key={i} className="card-link">{row}</Link>
+            ) : (
+              <div key={i}>{row}</div>
+            );
+          })}
         </>
       )}
     </>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getEvents } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
@@ -20,7 +21,7 @@ export default function EventsPage() {
   return (
     <>
       <h2>Events</h2>
-      <p className="subtitle">Upcoming engagements · {upcoming.length} scheduled</p>
+      <p className="subtitle">Upcoming engagements · {upcoming.length} scheduled · tap any to edit</p>
 
       <NewItemForm kind="event" />
 
@@ -36,22 +37,24 @@ export default function EventsPage() {
             const [_, month, day] = e.date.split("-");
             const monthLabel = MONTHS[parseInt(month, 10) - 1] || "";
             return (
-              <div className="skill-card" key={e.slug}>
-                <div className={`skill-level-badge ${tone}`}>
-                  <div style={{ textAlign: "center" }}>
-                    <div className="skill-level-number">{parseInt(day, 10)}</div>
-                    <div className="skill-level-sub">{monthLabel}</div>
+              <Link href={`/events/${e.slug}`} key={e.slug} className="card-link">
+                <div className="skill-card">
+                  <div className={`skill-level-badge ${tone}`}>
+                    <div style={{ textAlign: "center" }}>
+                      <div className="skill-level-number">{parseInt(day, 10)}</div>
+                      <div className="skill-level-sub">{monthLabel}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="skill-name">{e.title}</div>
+                    <div className="skill-meta" style={{ marginTop: 6 }}>
+                      {days <= 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days}d`}
+                      {e.time ? ` · ${e.time}` : ""}
+                    </div>
+                    {e.location && <div className="skill-meta">{e.location}</div>}
                   </div>
                 </div>
-                <div>
-                  <div className="skill-name">{e.title}</div>
-                  <div className="skill-meta" style={{ marginTop: 6 }}>
-                    {days <= 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days}d`}
-                    {e.time ? ` · ${e.time}` : ""}
-                  </div>
-                  {e.location && <div className="skill-meta">{e.location}</div>}
-                </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -65,20 +68,22 @@ export default function EventsPage() {
               const [_, month, day] = e.date.split("-");
               const monthLabel = MONTHS[parseInt(month, 10) - 1] || "";
               return (
-                <div className="event-row" key={e.slug}>
-                  <div className="event-date">
-                    <span className="day">{parseInt(day, 10)}</span>
-                    <span className="month">{monthLabel}</span>
-                  </div>
-                  <div>
-                    <div className="event-title">{e.title}</div>
-                    <div className="event-info">
-                      {e.location || "—"}
-                      {e.duration_minutes ? ` · ${e.duration_minutes} min` : ""}
+                <Link href={`/events/${e.slug}`} key={e.slug} className="card-link">
+                  <div className="event-row">
+                    <div className="event-date">
+                      <span className="day">{parseInt(day, 10)}</span>
+                      <span className="month">{monthLabel}</span>
                     </div>
+                    <div>
+                      <div className="event-title">{e.title}</div>
+                      <div className="event-info">
+                        {e.location || "—"}
+                        {e.duration_minutes ? ` · ${e.duration_minutes} min` : ""}
+                      </div>
+                    </div>
+                    <div className="event-time">{e.time || "—"}</div>
                   </div>
-                  <div className="event-time">{e.time || "—"}</div>
-                </div>
+                </Link>
               );
             })}
           </div>

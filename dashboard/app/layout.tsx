@@ -2,6 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import SubTabs from "./_components/SubTabs";
 import XpBar from "./_components/XpBar";
+import MusicPlayer from "@/components/MusicPlayer";
+import Feed from "@/components/Feed";
+import { getConfig } from "@/lib/vault";
 
 export const metadata: Metadata = {
   title: "Life Dashboard",
@@ -16,7 +19,12 @@ const topNav = [
   { label: "Store" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const cfg = getConfig();
+  const tracks = cfg.music?.tracks ?? [];
+
   return (
     <html lang="en">
       <head>
@@ -50,6 +58,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
 
         <XpBar level={15} current={2854} max={4200} />
+
+        <div className="player-float">
+          <MusicPlayer tracks={tracks} />
+        </div>
+
+        <Feed />
       </body>
     </html>
   );

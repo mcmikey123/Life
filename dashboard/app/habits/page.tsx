@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getHabits, getHabitLog } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
@@ -43,7 +44,7 @@ export default function HabitsPage() {
   return (
     <>
       <h2>Habits</h2>
-      <p className="subtitle">Daily disciplines · {habits.length} tracked</p>
+      <p className="subtitle">Daily disciplines · {habits.length} tracked · tap to edit</p>
 
       <NewItemForm kind="habit" />
 
@@ -57,22 +58,31 @@ export default function HabitsPage() {
             const adh = adherence30(log);
             const tone = s >= 7 ? "active" : s >= 3 ? "warn" : "";
             return (
-              <div className="skill-card" key={h.slug}>
-                <div className={`skill-level-badge ${tone}`}>
-                  <div style={{ textAlign: "center" }}>
-                    <div className="skill-level-number">{s}</div>
-                    <div className="skill-level-sub">Streak</div>
+              <Link href={`/habits/${h.slug}`} key={h.slug} className="card-link">
+                <div className="skill-card">
+                  <div className={`skill-level-badge ${tone}`}>
+                    <div style={{ textAlign: "center" }}>
+                      <div className="skill-level-number">{s}</div>
+                      <div className="skill-level-sub">Streak</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="skill-name">{h.title}</div>
+                    <div className="skill-meta" style={{ marginTop: 6 }}>
+                      {h.cadence}
+                      {h.time ? ` · ${h.time}` : ""}
+                      {h.days?.length ? ` · ${h.days.join("/")}` : ""}
+                    </div>
+                    <div className="skill-meta">
+                      {adh}% · 30d
+                      {h.streak_target ? ` · target ${h.streak_target}` : ""}
+                    </div>
+                    {h.linked_health_metric && (
+                      <div className="skill-meta">↳ health: {h.linked_health_metric}</div>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <div className="skill-name">{h.title}</div>
-                  <div className="skill-meta" style={{ marginTop: 6 }}>
-                    {h.cadence}
-                    {h.time ? ` · ${h.time}` : ""}
-                  </div>
-                  <div className="skill-meta">{adh}% · 30d</div>
-                </div>
-              </div>
+              </Link>
             );
           })}
         </div>

@@ -1,3 +1,7 @@
+import { getHealthMetrics } from "@/lib/vault";
+import { adjustHealthMetric } from "@/lib/actions";
+import Stepper from "@/components/Stepper";
+
 export const dynamic = "force-dynamic";
 
 const TARGET = {
@@ -29,11 +33,32 @@ function pct(value: number, target: number) {
 
 export default function HealthPage() {
   const remainingCalories = TARGET.calories - TODAY_INTAKE.calories;
+  const metrics = getHealthMetrics();
 
   return (
     <>
       <h2>Health</h2>
-      <p className="subtitle">Vitals · macros · daily targets</p>
+      <p className="subtitle">Vitals · macros · daily targets · use the steppers to log live values</p>
+
+      {metrics.length > 0 && (
+        <>
+          <div className="section-title" style={{ marginTop: 0 }}>Live metrics</div>
+          <div className="metrics-list">
+            {metrics.map((m) => {
+              const adjust = async (delta: number) => {
+                "use server";
+                await adjustHealthMetric(m.key, delta);
+              };
+              return (
+                <div className="metric-row" key={m.key}>
+                  <div className="metric-label">{m.label}</div>
+                  <Stepper value={m.value} step={m.step} unit={m.unit} onAdjust={adjust} />
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <div className="health-layout">
         {/* LEFT — weight */}
