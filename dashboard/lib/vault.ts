@@ -141,3 +141,104 @@ export function aggregateProjectCosts() {
     currency: p.budget?.currency ?? "USD",
   }));
 }
+
+// ---- by-slug getters ----
+
+export function getEvent(slug: string): EventItem | null {
+  return getEvents().find((e) => e.slug === slug) ?? null;
+}
+export function getProject(slug: string): ProjectItem | null {
+  return getProjects().find((p) => p.slug === slug) ?? null;
+}
+export function getHabit(slug: string): HabitItem | null {
+  return getHabits().find((h) => h.slug === slug) ?? null;
+}
+export function getReminder(slug: string): ReminderItem | null {
+  return getReminders().find((r) => r.slug === slug) ?? null;
+}
+
+// ---- health metrics ----
+
+export type HealthMetric = {
+  key: string;
+  label: string;
+  value: number;
+  unit: string;
+  step: number;
+  min?: number;
+  max?: number;
+};
+
+export function getHealthMetrics(): HealthMetric[] {
+  const file = path.join(VAULT, "health", "metrics.md");
+  if (!fs.existsSync(file)) return [];
+  const { data } = matter(fs.readFileSync(file, "utf8"));
+  return (data.metrics as HealthMetric[]) ?? [];
+}
+
+// ---- dashboard config (music tracks etc) ----
+
+export type DashboardConfig = {
+  music?: { tracks?: { title?: string; src: string }[] };
+};
+
+export function getConfig(): DashboardConfig {
+  const file = path.join(VAULT, "config.md");
+  if (!fs.existsSync(file)) return {};
+  const { data } = matter(fs.readFileSync(file, "utf8"));
+  return data as DashboardConfig;
+}
+
+// ---- calendar feed: events + project task deadlines, chronologically ----
+
+export type CalendarItem = {
+  date: string;          // YYYY-MM-DD
+  time?: string;         // HH:MM
+  title: string;
+  kind: "event" | "task" | "reminder";
+  href: string;
+  detail?: string;
+};
+
+export function getCalendar(): CalendarItem[] {
+  const out: CalendarItem[] = [];
+
+  for (const e of getEvents()) {
+    out.push({
+      date: e.date,
+      time: e.time,
+      title: e.title,
+      kind: "event",
+      href: `/events/${e.slug}`,
+      detail: e.location || undefined,
+    });
+  }
+
+  for (const p of getProjects()) {
+    for (const t of p.tasks ?? []) {
+      if (!t.deadline || t.done) continue;
+      out.push({
+        date: t.deadline,
+        title: `${p.title}: ${t.title}`,
+        kind: "task",
+        href: `/projects/${p.slug}`,
+      });
+    }
+  }
+
+  for (const r of getReminders()) {
+    if (r.status !== "pending" || !r.fire_at) continue;
+    const [d, t] = r.fire_at.split("T");
+    out.push({
+      date: d,
+      time: t?.slice(0, 5),
+      title: r.title,
+      kind: "reminder",
+      href: `/reminders/${r.slug}`,
+    });
+  }
+
+  return out.sort((a, b) =>
+    (a.date + (a.time || "")).localeCompare(b.date + (b.time || ""))
+  );
+}

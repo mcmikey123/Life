@@ -1,6 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import MusicPlayer from "@/components/MusicPlayer";
+import { getConfig } from "@/lib/vault";
 
 export const metadata: Metadata = {
   title: "Life",
@@ -8,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 const phase1 = [
+  { href: "/character", label: "Character" },
   { href: "/events", label: "Events" },
   { href: "/reminders", label: "Reminders" },
   { href: "/projects", label: "Projects" },
@@ -18,24 +21,30 @@ const phase2 = [
   { href: "/health", label: "Health" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const cfg = getConfig();
+  const tracks = cfg.music?.tracks ?? [];
+
   return (
     <html lang="en">
       <body>
         <div className="layout">
           <aside className="sidebar">
-            <h1>Life</h1>
-            <nav>
-              <Link href="/">Overview</Link>
-              <div className="group-label">Phase 1</div>
-              {phase1.map((l) => (
-                <Link key={l.href} href={l.href}>{l.label}</Link>
-              ))}
-              <div className="group-label">Phase 2</div>
-              {phase2.map((l) => (
-                <Link key={l.href} href={l.href}>{l.label}</Link>
-              ))}
-            </nav>
+            <div>
+              <h1>Life</h1>
+              <nav>
+                {phase1.map((l) => (
+                  <Link key={l.href} href={l.href}>{l.label}</Link>
+                ))}
+                <div className="group-label">Phase 2</div>
+                {phase2.map((l) => (
+                  <Link key={l.href} href={l.href}>{l.label}</Link>
+                ))}
+              </nav>
+            </div>
+            <MusicPlayer tracks={tracks} />
           </aside>
           <main>{children}</main>
         </div>

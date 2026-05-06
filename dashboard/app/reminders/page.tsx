@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ type FlatReminder = {
   fire_at: string;
   channels: string[];
   status: string;
+  href?: string;
 };
 
 export default function RemindersPage() {
@@ -24,6 +26,7 @@ export default function RemindersPage() {
       fire_at: r.fire_at,
       channels: r.channels || [],
       status: r.status,
+      href: `/reminders/${r.slug}`,
     });
   }
 
@@ -35,6 +38,7 @@ export default function RemindersPage() {
         fire_at: `${e.date} ${e.time || ""}`.trim(),
         channels: r.channels || [],
         status: "scheduled",
+        href: `/events/${e.slug}`,
       });
     }
   }
@@ -48,6 +52,7 @@ export default function RemindersPage() {
           fire_at: t.deadline || "",
           channels: r.channels || [],
           status: t.done ? "done" : "scheduled",
+          href: `/projects/${p.slug}`,
         });
       }
     }
@@ -58,7 +63,7 @@ export default function RemindersPage() {
   return (
     <>
       <h2>Reminders</h2>
-      <p className="subtitle">All scheduled pings — standalone, plus rolled up from events and project tasks.</p>
+      <p className="subtitle">Tap a row to open the underlying event/project/reminder.</p>
 
       {flat.length === 0 ? (
         <div className="empty">No reminders scheduled.</div>
@@ -77,7 +82,7 @@ export default function RemindersPage() {
             {flat.map((r, i) => (
               <tr key={i}>
                 <td>{r.fire_at || "—"}</td>
-                <td>{r.title}</td>
+                <td>{r.href ? <Link href={r.href}>{r.title}</Link> : r.title}</td>
                 <td>{r.channels.map((c) => <span key={c} className="tag">{c}</span>)}</td>
                 <td>
                   <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getEvents } from "@/lib/vault";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +17,9 @@ export default function EventsPage() {
   return (
     <>
       <h2>Events</h2>
-      <p className="subtitle">Schedule of upcoming and past events.</p>
+      <p className="subtitle">Tap any event to edit it.</p>
 
-      {dates.length === 0 && <div className="empty">No events yet. Add one with `python scripts/add.py event …`.</div>}
+      {dates.length === 0 && <div className="empty">No events yet. Add one with <code>python scripts/add.py event …</code> or via Claude voice.</div>}
 
       {dates.map((date) => {
         const isPast = date < today;
@@ -30,16 +31,17 @@ export default function EventsPage() {
               {isPast && " · past"}
             </div>
             {grouped[date].map((e) => (
-              <div className="card" key={e.slug}>
-                <h3>{e.title}</h3>
-                <div className="meta">
-                  {e.time}
-                  {e.duration_minutes ? ` · ${e.duration_minutes} min` : ""}
-                  {e.location ? ` · ${e.location}` : ""}
+              <Link href={`/events/${e.slug}`} key={e.slug} className="card-link">
+                <div className="card">
+                  <h3>{e.title}</h3>
+                  <div className="meta">
+                    {e.time}
+                    {e.duration_minutes ? ` · ${e.duration_minutes} min` : ""}
+                    {e.location ? ` · ${e.location}` : ""}
+                  </div>
+                  {e.tags?.length ? <div style={{ marginTop: 6 }}>{e.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div> : null}
                 </div>
-                {e.tags?.length ? <div style={{ marginTop: 6 }}>{e.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div> : null}
-                {e.body?.trim() && <div className="body">{e.body.trim()}</div>}
-              </div>
+              </Link>
             ))}
           </section>
         );
