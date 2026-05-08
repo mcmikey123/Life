@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getEvents } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 

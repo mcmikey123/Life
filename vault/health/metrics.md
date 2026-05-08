@@ -16,20 +16,20 @@ metrics:
   - key: steps
     label: Steps today
     value: 4500
-    unit: ""
+    unit: ''
     step: 100
     min: 0
   - key: mood
     label: Mood
     value: 7
-    unit: "/10"
+    unit: /10
     step: 1
     min: 1
     max: 10
   - key: energy
     label: Energy
-    value: 6
-    unit: "/10"
+    value: 8
+    unit: /10
     step: 1
     min: 1
     max: 10

@@ -2,7 +2,7 @@ import { getHealthMetrics } from "@/lib/vault";
 import { adjustHealthMetric } from "@/lib/actions";
 import Stepper from "@/components/Stepper";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const TARGET = {
   calories: 2400,

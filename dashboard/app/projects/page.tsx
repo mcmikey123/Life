@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getProjects } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const STATUS_LABEL: Record<string, string> = {
   active: "In Progress",

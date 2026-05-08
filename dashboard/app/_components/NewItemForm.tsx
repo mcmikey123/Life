@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Kind = "event" | "reminder" | "project" | "habit";
+type Kind = "event" | "reminder" | "project" | "habit" | "quest";
 
 const LABELS: Record<Kind, string> = {
   event: "Event",
   reminder: "Reminder",
   project: "Project",
   habit: "Habit",
+  quest: "Quest",
 };
 
 export default function NewItemForm({ kind }: { kind: Kind }) {
@@ -241,6 +242,33 @@ export default function NewItemForm({ kind }: { kind: Kind }) {
               onChange={(e) => set("linked_health_metric", e.target.value)}
               placeholder="e.g. weight, steps"
             />
+          </label>
+        </>
+      )}
+
+      {kind === "quest" && (
+        <>
+          <div className="row">
+            <label>
+              Horizon
+              <select value={form.horizon || "long"} onChange={(e) => set("horizon", e.target.value)}>
+                <option value="long">long (5+ years)</option>
+                <option value="medium">medium (1-5 years)</option>
+                <option value="short">short (months)</option>
+              </select>
+            </label>
+            <label>
+              Deadline (optional)
+              <input
+                type="date"
+                value={form.deadline || ""}
+                onChange={(e) => set("deadline", e.target.value)}
+              />
+            </label>
+          </div>
+          <label>
+            Tags (comma-separated)
+            <input value={form.tags || ""} onChange={(e) => set("tags", e.target.value)} />
           </label>
         </>
       )}

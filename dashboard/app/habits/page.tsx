@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getHabits, getHabitLog } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 function streak(log: { date: string; status: string }[]): number {
   const today = new Date();

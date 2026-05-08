@@ -14,6 +14,15 @@ function classify(message: string): string {
   return "other";
 }
 
+const KIND_USER: Record<string, string> = {
+  event: "Calendar",
+  reminder: "Bellman",
+  habit: "Streakmonk",
+  project: "Foreman",
+  health: "Vitals",
+  other: "Vault",
+};
+
 function formatTime(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -69,7 +78,7 @@ export default function Feed() {
   return (
     <aside className={`feed ${open ? "open" : "closed"} ${flash ? "flash" : ""}`}>
       <button className="feed-header" onClick={() => setOpen((o) => !o)}>
-        <span className="feed-title">FEED</span>
+        <span className="feed-title">CHAT</span>
         <span className="feed-count">{entries.length > 0 && open ? `${entries.length}` : ""}</span>
         <span className="feed-toggle">{open ? "−" : "+"}</span>
       </button>
@@ -80,12 +89,21 @@ export default function Feed() {
           ) : entries.length === 0 ? (
             <div className="feed-empty">No vault commits yet.</div>
           ) : (
-            entries.map((e) => (
-              <div key={e.sha} className={`feed-row kind-${classify(e.message)}`}>
-                <span className="feed-time">{formatTime(e.date)}</span>
-                <span className="feed-msg" title={`${e.sha} · ${e.date}`}>{e.message}</span>
-              </div>
-            ))
+            entries.map((e) => {
+              const kind = classify(e.message);
+              const user = KIND_USER[kind] ?? "Vault";
+              return (
+                <div key={e.sha} className={`feed-row kind-${kind}`} title={`${e.sha} · ${e.date}`}>
+                  <div className="chat-msg">{e.message}</div>
+                  <div className="chat-meta">
+                    <span className="chat-dot" aria-hidden />
+                    <span className="chat-user">{user}</span>
+                    <span className="chat-channel">@&nbsp;GLOBAL</span>
+                    <span className="chat-time">{formatTime(e.date)}</span>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       )}

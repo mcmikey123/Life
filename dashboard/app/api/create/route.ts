@@ -131,5 +131,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
   }
 
+  if (kind === "quest") {
+    const slug = slugify(title);
+    const result = await write(
+      `quests/${slug}.md`,
+      {
+        type: "quest",
+        title,
+        status: "active",
+        horizon: body.horizon || "long",
+        deadline: body.deadline || "",
+        progress: 0,
+        linked_projects: csv(body.linked_projects),
+        tags: csv(body.tags),
+        created: nowIso(),
+      },
+      `# ${title}\n\n## Why this matters\n`,
+      `Add quest: ${title}`,
+    );
+    return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
+  }
+
   return NextResponse.json({ error: `unknown kind: ${kind}` }, { status: 400 });
 }

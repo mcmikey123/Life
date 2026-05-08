@@ -2,7 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 import SubTabs from "./_components/SubTabs";
 import XpBar from "./_components/XpBar";
-import MusicPlayer from "@/components/MusicPlayer";
+import ChromeControls from "@/components/ChromeControls";
+import QuestsPanel from "@/components/QuestsPanel";
 import Feed from "@/components/Feed";
 import { getConfig } from "@/lib/vault";
 
@@ -19,7 +20,7 @@ const topNav = [
   { label: "Store" },
 ];
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const cfg = getConfig();
@@ -47,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             ))}
           </nav>
-          <div className="settings" title="Settings">⚙</div>
+          <ChromeControls tracks={tracks} />
         </header>
 
         <main className="screen">
@@ -59,10 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <XpBar level={15} current={2854} max={4200} />
 
-        <div className="player-float">
-          <MusicPlayer tracks={tracks} />
-        </div>
-
+        <QuestsPanel />
         <Feed />
       </body>
     </html>

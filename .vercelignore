@@ -1,0 +1,9 @@
+# Vercel project Root Directory is dashboard/. Exclude top-level repo
+# content that the dashboard runtime doesn't need. NOTE: vault/ MUST stay
+# uploaded — the dashboard reads it at runtime via ../vault.
+scheduler/
+scripts/
+templates/
+.obsidian/
+.github/
+/*.mp3
