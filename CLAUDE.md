@@ -37,6 +37,17 @@ Always copy from the matching template in `vault/templates/`:
 
 Fill all fields. For `created`, use `datetime.now().isoformat()` truncated to seconds.
 
+### Time zone — Europe/London everywhere
+
+All wall-clock fields in vault frontmatter (event `date` + `time`, reminder
+`fire_at`, habit `time`, project task `deadline`) are **Europe/London local
+time**, no offset, no `Z`. The scheduler attaches `Europe/London` when parsing
+and converts to UTC only when comparing against `datetime.now(timezone.utc)`.
+Dashboard forms read and write these strings verbatim — no conversion.
+
+Do NOT write UTC, mixed offsets, or naive-but-meant-as-UTC values into the
+vault. If the user says "10am", store `time: "10:00"`.
+
 ### Reminder offsets
 
 The scheduler accepts offsets like `30m`, `1h`, `1d`, `1w`. Default reminders for a new

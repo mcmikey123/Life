@@ -2,7 +2,7 @@
 type: event
 title: Another test event
 date: '2026-06-13'
-time: '08:00'
+time: '09:00'
 duration_minutes: 60
 location: ''
 tags: []

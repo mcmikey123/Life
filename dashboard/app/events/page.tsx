@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getEvents } from "@/lib/vault";
-import { eventUtcToLocal } from "@/lib/tz";
+import { todayLocal } from "@/lib/tz";
 import NewItemForm from "../_components/NewItemForm";
 
 export const revalidate = 30;
@@ -14,11 +14,8 @@ function daysUntil(dateStr: string): number {
 }
 
 export default function EventsPage() {
-  const events = getEvents().map((e) => {
-    const local = eventUtcToLocal(e.date, e.time);
-    return { ...e, date: local.date, time: local.time };
-  });
-  const today = new Date().toISOString().slice(0, 10);
+  const events = getEvents();
+  const today = todayLocal();
   const upcoming = events.filter((e) => e.date >= today);
   const past = events.filter((e) => e.date < today);
 

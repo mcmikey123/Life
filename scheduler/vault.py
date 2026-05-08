@@ -12,10 +12,15 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import frontmatter
 
 VAULT_PATH = Path(os.environ.get("VAULT_PATH", Path(__file__).resolve().parent.parent / "vault"))
+
+# All wall-clock fields in vault frontmatter (event date+time, reminder fire_at,
+# habit time, project task deadline) are interpreted in this zone.
+LOCAL_TZ = ZoneInfo("Europe/London")
 
 
 @dataclass
@@ -49,16 +54,20 @@ def parse_offset(offset: str) -> timedelta:
 
 
 def parse_datetime(date: str, time: str | None = None) -> datetime | None:
+    """Parse a vault wall-clock string and attach LOCAL_TZ. Always returns aware."""
     if not date:
         return None
     try:
         if time:
-            return datetime.fromisoformat(f"{date}T{time}")
-        if "T" in date:
-            return datetime.fromisoformat(date)
-        return datetime.fromisoformat(f"{date}T09:00")
+            naive = datetime.fromisoformat(f"{date}T{time}")
+        elif "T" in date:
+            naive = datetime.fromisoformat(date)
+        else:
+            naive = datetime.fromisoformat(f"{date}T09:00")
     except ValueError:
         return None
+    # Drop any incoming tzinfo (legacy data) and re-anchor to LOCAL_TZ.
+    return naive.replace(tzinfo=LOCAL_TZ)
 
 
 def _iter_md(folder: str):
@@ -148,9 +157,13 @@ _DAY_INDEX = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun":
 
 
 def collect_habits(now: datetime) -> list[FireEvent]:
-    """Emit a fire event for each habit on its scheduled day, at its scheduled time."""
+    """Emit a fire event for each habit on its scheduled day, at its scheduled local time.
+
+    `now` must be aware in LOCAL_TZ so weekday/hour reflect the user's clock.
+    """
     out: list[FireEvent] = []
-    today_idx = now.weekday()
+    now_local = now.astimezone(LOCAL_TZ)
+    today_idx = now_local.weekday()
     for p in _iter_md("habits"):
         post = frontmatter.load(p)
         meta = post.metadata
@@ -166,7 +179,7 @@ def collect_habits(now: datetime) -> list[FireEvent]:
             hh, mm = (int(x) for x in time_s.split(":"))
         except ValueError:
             continue
-        fire = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        fire = now_local.replace(hour=hh, minute=mm, second=0, microsecond=0)
         channels = (meta.get("reminder") or {}).get("channels") or ["ntfy"]
         out.append(
             FireEvent(

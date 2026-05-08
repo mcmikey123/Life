@@ -12,7 +12,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # allow running as `python -m scheduler.run` or `python scheduler/run.py`
@@ -44,7 +44,7 @@ def save_state(state: dict[str, str]) -> None:
 
 
 def main() -> None:
-    now = datetime.now().replace(microsecond=0)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
     state = load_state()
     fired_count = 0
 

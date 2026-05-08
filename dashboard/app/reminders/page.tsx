@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
-import { eventUtcToLocal, fireAtUtcToLocal } from "@/lib/tz";
 import NewItemForm from "../_components/NewItemForm";
 
 export const revalidate = 30;
@@ -25,7 +24,7 @@ export default function RemindersPage() {
     flat.push({
       source: `reminder/${r.slug}`,
       title: r.title,
-      fire_at: fireAtUtcToLocal(r.fire_at).replace("T", " "),
+      fire_at: r.fire_at,
       channels: r.channels || [],
       status: r.status,
       href: `/reminders/${r.slug}`,
@@ -33,12 +32,11 @@ export default function RemindersPage() {
   }
 
   for (const e of events) {
-    const local = eventUtcToLocal(e.date, e.time);
     for (const r of e.reminders || []) {
       flat.push({
         source: `event/${e.slug}`,
         title: `${e.title} (${r.offset || "@start"} before)`,
-        fire_at: `${local.date} ${local.time || ""}`.trim(),
+        fire_at: `${e.date} ${e.time || ""}`.trim(),
         channels: r.channels || [],
         status: "scheduled",
         href: `/events/${e.slug}`,
