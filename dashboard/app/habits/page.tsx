@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getHabits, getHabitLog } from "@/lib/vault";
+import NewItemForm from "../_components/NewItemForm";
 
 export const dynamic = "force-dynamic";
 
@@ -43,33 +44,49 @@ export default function HabitsPage() {
   return (
     <>
       <h2>Habits</h2>
-      <p className="subtitle">Tap a habit to edit cadence, time, channels, and view full adherence log.</p>
+      <p className="subtitle">Daily disciplines · {habits.length} tracked · tap to edit</p>
 
-      {habits.length === 0 && <div className="empty">No habits yet.</div>}
+      <NewItemForm kind="habit" />
 
-      {habits.map((h) => {
-        const log = getHabitLog(h.slug);
-        const s = streak(log);
-        const adh = adherence30(log);
-        return (
-          <Link href={`/habits/${h.slug}`} key={h.slug} className="card-link">
-            <div className="card">
-              <h3>{h.title}</h3>
-              <div className="meta">
-                <span className="tag">{h.cadence}</span>
-                {h.time && <span className="tag">{h.time}</span>}
-                {h.days && <span className="tag">{h.days.join("/")}</span>}
-                {h.linked_health_metric && <span className="tag">↳ health: {h.linked_health_metric}</span>}
-              </div>
-              <div style={{ marginTop: 10, display: "flex", gap: 24 }}>
-                <div><strong>{s}</strong> day streak</div>
-                <div><strong>{adh}%</strong> adherence (30d)</div>
-                {h.streak_target && <div className="meta">target: {h.streak_target}</div>}
-              </div>
-            </div>
-          </Link>
-        );
-      })}
+      {habits.length === 0 ? (
+        <div className="empty">No habits yet</div>
+      ) : (
+        <div className="skill-grid">
+          {habits.map((h) => {
+            const log = getHabitLog(h.slug);
+            const s = streak(log);
+            const adh = adherence30(log);
+            const tone = s >= 7 ? "active" : s >= 3 ? "warn" : "";
+            return (
+              <Link href={`/habits/${h.slug}`} key={h.slug} className="card-link">
+                <div className="skill-card">
+                  <div className={`skill-level-badge ${tone}`}>
+                    <div style={{ textAlign: "center" }}>
+                      <div className="skill-level-number">{s}</div>
+                      <div className="skill-level-sub">Streak</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="skill-name">{h.title}</div>
+                    <div className="skill-meta" style={{ marginTop: 6 }}>
+                      {h.cadence}
+                      {h.time ? ` · ${h.time}` : ""}
+                      {h.days?.length ? ` · ${h.days.join("/")}` : ""}
+                    </div>
+                    <div className="skill-meta">
+                      {adh}% · 30d
+                      {h.streak_target ? ` · target ${h.streak_target}` : ""}
+                    </div>
+                    {h.linked_health_metric && (
+                      <div className="skill-meta">↳ health: {h.linked_health_metric}</div>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

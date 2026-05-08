@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
+import NewItemForm from "../_components/NewItemForm";
 
 export const dynamic = "force-dynamic";
 
@@ -63,37 +64,40 @@ export default function RemindersPage() {
   return (
     <>
       <h2>Reminders</h2>
-      <p className="subtitle">Tap a row to open the underlying event/project/reminder.</p>
+      <p className="subtitle">All scheduled pings · {flat.length} total · tap a row to open the source</p>
+
+      <NewItemForm kind="reminder" />
 
       {flat.length === 0 ? (
-        <div className="empty">No reminders scheduled.</div>
+        <div className="empty">No reminders scheduled</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Fire at</th>
-              <th>Title</th>
-              <th>Channels</th>
-              <th>Status</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flat.map((r, i) => (
-              <tr key={i}>
-                <td>{r.fire_at || "—"}</td>
-                <td>{r.href ? <Link href={r.href}>{r.title}</Link> : r.title}</td>
-                <td>{r.channels.map((c) => <span key={c} className="tag">{c}</span>)}</td>
-                <td>
+        <>
+          <div className="section-title">Queue</div>
+          {flat.map((r, i) => {
+            const row = (
+              <div className="reminder-row">
+                <div className="reminder-fire">{r.fire_at || "—"}</div>
+                <div>
+                  <div className="reminder-title">{r.title}</div>
+                  <div className="skill-meta" style={{ marginTop: 4 }}>{r.source}</div>
+                </div>
+                <div>
+                  {r.channels.map((c) => <span key={c} className="tag">{c}</span>)}
+                </div>
+                <div>
                   <span className={`badge ${r.status === "done" ? "good" : r.status === "pending" ? "warn" : ""}`}>
                     {r.status}
                   </span>
-                </td>
-                <td><span className="meta">{r.source}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              </div>
+            );
+            return r.href ? (
+              <Link href={r.href} key={i} className="card-link">{row}</Link>
+            ) : (
+              <div key={i}>{row}</div>
+            );
+          })}
+        </>
       )}
     </>
   );
