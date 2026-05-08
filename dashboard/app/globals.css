@@ -1067,6 +1067,7 @@ button:hover, .new-btn:hover {
 .cal-item.kind-event { border-left: 3px solid var(--accent); }
 .cal-item.kind-task { border-left: 3px solid var(--warn); }
 .cal-item.kind-reminder { border-left: 3px solid var(--good); }
+.cal-item.kind-habit, .cal-item.kind-daily { border-left: 3px solid rgba(200, 164, 78, .8); }
 
 /* ---- metric steppers ---- */
 .metrics-list { display: grid; gap: 8px; }
@@ -1193,8 +1194,8 @@ button:hover, .new-btn:hover {
 .feed-row.kind-event    .chat-dot { background: #7c9cff; box-shadow: 0 0 6px rgba(124,156,255,.6); }
 .feed-row.kind-reminder { border-left-color: rgba(123, 217, 161, .8); }
 .feed-row.kind-reminder .chat-dot { background: #7bd9a1; box-shadow: 0 0 6px rgba(123,217,161,.6); }
-.feed-row.kind-habit    { border-left-color: rgba(200, 164, 78, .8); }
-.feed-row.kind-habit    .chat-dot { background: #c8a44e; box-shadow: 0 0 6px rgba(200,164,78,.6); }
+.feed-row.kind-habit, .feed-row.kind-daily    { border-left-color: rgba(200, 164, 78, .8); }
+.feed-row.kind-habit .chat-dot, .feed-row.kind-daily .chat-dot { background: #c8a44e; box-shadow: 0 0 6px rgba(200,164,78,.6); }
 .feed-row.kind-project  { border-left-color: rgba(224, 181, 99, .8); }
 .feed-row.kind-project  .chat-dot { background: #e0b563; box-shadow: 0 0 6px rgba(224,181,99,.6); }
 .feed-row.kind-health   { border-left-color: rgba(224, 126, 126, .8); }

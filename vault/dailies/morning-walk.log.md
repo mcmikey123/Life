@@ -1,6 +1,6 @@
 ---
-type: habit_log
-habit: "morning-walk"
+type: daily_log
+daily: "morning-walk"
 ---
 
 | date       | status | note          |

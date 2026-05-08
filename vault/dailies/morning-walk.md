@@ -1,5 +1,5 @@
 ---
-type: habit
+type: daily
 title: "Morning Walk"
 cadence: daily
 days: [mon, tue, wed, thu, fri, sat, sun]

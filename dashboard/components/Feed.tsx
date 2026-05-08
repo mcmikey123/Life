@@ -8,7 +8,7 @@ type Entry = { sha: string; date: string; message: string };
 function classify(message: string): string {
   if (/^update event|delete event|^add event/i.test(message)) return "event";
   if (/^update reminder/i.test(message)) return "reminder";
-  if (/^update habit|^log /i.test(message)) return "habit";
+  if (/^update daily|^add daily|^log /i.test(message)) return "daily";
   if (/^update project|^add cost|^add task|^toggle task/i.test(message)) return "project";
   if (/^adjust |^set /i.test(message)) return "health";
   return "other";
@@ -17,7 +17,7 @@ function classify(message: string): string {
 const KIND_USER: Record<string, string> = {
   event: "Calendar",
   reminder: "Bellman",
-  habit: "Streakmonk",
+  daily: "Streakmonk",
   project: "Foreman",
   health: "Vitals",
   other: "Vault",

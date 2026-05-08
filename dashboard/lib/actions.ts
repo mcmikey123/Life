@@ -84,13 +84,14 @@ export async function updateReminder(slug: string, form: FormData) {
   revalidatePath(`/reminders/${slug}`);
 }
 
-// ---------- habits ----------
+// ---------- dailies ----------
 
-export async function updateHabit(slug: string, form: FormData) {
-  const rel = `habits/${slug}.md`;
+export async function updateDaily(slug: string, form: FormData) {
+  const rel = `dailies/${slug}.md`;
   const { data, content } = load(rel);
   data.title = String(form.get("title") || data.title);
   data.cadence = String(form.get("cadence") || data.cadence);
+  data.date = String(form.get("date") || data.date || "");
   data.time = String(form.get("time") || data.time);
   data.days = String(form.get("days") || (data.days as string[]).join(","))
     .split(",").map((s) => s.trim()).filter(Boolean);
@@ -104,9 +105,10 @@ export async function updateHabit(slug: string, form: FormData) {
     enabled: form.get("reminder_enabled") === "on",
   };
   const body = String(form.get("body") || content);
-  await save(rel, data, body, `update habit: ${data.title}`);
-  revalidatePath("/habits");
-  revalidatePath(`/habits/${slug}`);
+  await save(rel, data, body, `update daily: ${data.title}`);
+  revalidatePath("/dailies");
+  revalidatePath(`/dailies/${slug}`);
+  revalidatePath("/character");
 }
 
 // ---------- projects: budget, costs, tasks ----------

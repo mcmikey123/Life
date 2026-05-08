@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Kind = "event" | "reminder" | "project" | "habit" | "quest";
+type Kind = "event" | "reminder" | "project" | "daily" | "quest";
 
 const LABELS: Record<Kind, string> = {
   event: "Event",
   reminder: "Reminder",
   project: "Project",
-  habit: "Habit",
+  daily: "Daily",
   quest: "Quest",
 };
 
@@ -190,15 +190,16 @@ export default function NewItemForm({ kind }: { kind: Kind }) {
         </>
       )}
 
-      {kind === "habit" && (
+      {kind === "daily" && (
         <>
           <div className="row">
             <label>
               Cadence
               <select value={form.cadence || "daily"} onChange={(e) => set("cadence", e.target.value)}>
-                <option value="daily">daily</option>
-                <option value="weekly">weekly</option>
-                <option value="custom">custom</option>
+                <option value="daily">daily (recurring)</option>
+                <option value="weekly">weekly (recurring)</option>
+                <option value="custom">custom (recurring)</option>
+                <option value="once">once (one-off)</option>
               </select>
             </label>
             <label>
@@ -209,17 +210,29 @@ export default function NewItemForm({ kind }: { kind: Kind }) {
                 onChange={(e) => set("time", e.target.value)}
               />
             </label>
+            {form.cadence !== "once" && (
+              <label>
+                Streak target
+                <input
+                  type="number"
+                  min={1}
+                  value={form.streak_target || "30"}
+                  onChange={(e) => set("streak_target", e.target.value)}
+                />
+              </label>
+            )}
+          </div>
+          {form.cadence === "once" ? (
             <label>
-              Streak target
+              Date
               <input
-                type="number"
-                min={1}
-                value={form.streak_target || "30"}
-                onChange={(e) => set("streak_target", e.target.value)}
+                required
+                type="date"
+                value={form.date || ""}
+                onChange={(e) => set("date", e.target.value)}
               />
             </label>
-          </div>
-          <div className="row">
+          ) : (
             <label>
               Days (comma-separated)
               <input
@@ -227,6 +240,8 @@ export default function NewItemForm({ kind }: { kind: Kind }) {
                 onChange={(e) => set("days", e.target.value)}
               />
             </label>
+          )}
+          <div className="row">
             <label>
               Channels
               <input
@@ -234,15 +249,15 @@ export default function NewItemForm({ kind }: { kind: Kind }) {
                 onChange={(e) => set("channels", e.target.value)}
               />
             </label>
+            <label>
+              Linked health metric
+              <input
+                value={form.linked_health_metric || ""}
+                onChange={(e) => set("linked_health_metric", e.target.value)}
+                placeholder="e.g. weight, steps"
+              />
+            </label>
           </div>
-          <label>
-            Linked health metric
-            <input
-              value={form.linked_health_metric || ""}
-              onChange={(e) => set("linked_health_metric", e.target.value)}
-              placeholder="e.g. weight, steps"
-            />
-          </label>
         </>
       )}
 

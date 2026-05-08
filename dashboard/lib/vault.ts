@@ -52,11 +52,13 @@ export type ProjectItem = {
   body: string;
 };
 
-export type HabitItem = {
+export type DailyItem = {
   slug: string;
-  type: "habit";
+  type: "daily";
   title: string;
-  cadence: string;
+  cadence: "daily" | "weekly" | "custom" | "once";
+  /** Required when cadence === "once". YYYY-MM-DD, Europe/London. */
+  date?: string;
   days: string[];
   time?: string;
   reminder?: { channels: string[]; enabled: boolean };
@@ -118,10 +120,10 @@ export function getProjects(): ProjectItem[] {
     .filter((p) => p.type === "project");
 }
 
-export function getHabits(): HabitItem[] {
-  return readFolder("habits")
-    .map((h) => ({ slug: h.slug, body: h.body, ...(h.data as any) }) as HabitItem)
-    .filter((h) => h.type === "habit");
+export function getDailies(): DailyItem[] {
+  return readFolder("dailies")
+    .map((d) => ({ slug: d.slug, body: d.body, ...(d.data as any) }) as DailyItem)
+    .filter((d) => d.type === "daily");
 }
 
 export function getQuests(): QuestItem[] {
@@ -141,8 +143,8 @@ export function getReminders(): ReminderItem[] {
     .sort((a, b) => (a.fire_at || "").localeCompare(b.fire_at || ""));
 }
 
-export function getHabitLog(slug: string): { date: string; status: string; note?: string }[] {
-  const file = path.join(VAULT, "habits", `${slug}.log.md`);
+export function getDailyLog(slug: string): { date: string; status: string; note?: string }[] {
+  const file = path.join(VAULT, "dailies", `${slug}.log.md`);
   if (!fs.existsSync(file)) return [];
   const raw = fs.readFileSync(file, "utf8");
   const lines = raw
@@ -173,8 +175,8 @@ export function getEvent(slug: string): EventItem | null {
 export function getProject(slug: string): ProjectItem | null {
   return getProjects().find((p) => p.slug === slug) ?? null;
 }
-export function getHabit(slug: string): HabitItem | null {
-  return getHabits().find((h) => h.slug === slug) ?? null;
+export function getDaily(slug: string): DailyItem | null {
+  return getDailies().find((d) => d.slug === slug) ?? null;
 }
 export function getReminder(slug: string): ReminderItem | null {
   return getReminders().find((r) => r.slug === slug) ?? null;

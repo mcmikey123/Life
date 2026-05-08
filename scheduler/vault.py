@@ -18,8 +18,9 @@ import frontmatter
 
 VAULT_PATH = Path(os.environ.get("VAULT_PATH", Path(__file__).resolve().parent.parent / "vault"))
 
-# All wall-clock fields in vault frontmatter (event date+time, reminder fire_at,
-# habit time, project task deadline) are interpreted in this zone.
+# All wall-clock fields in vault frontmatter (event date+time, reminder
+# fire_at, daily time, daily date for one-offs, project task deadline) are
+# interpreted in this zone.
 LOCAL_TZ = ZoneInfo("Europe/London")
 
 
@@ -156,24 +157,34 @@ def collect_standalone_reminders() -> list[FireEvent]:
 _DAY_INDEX = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
 
 
-def collect_habits(now: datetime) -> list[FireEvent]:
-    """Emit a fire event for each habit on its scheduled day, at its scheduled local time.
+def collect_dailies(now: datetime) -> list[FireEvent]:
+    """Emit a fire event for each daily that's due today.
 
-    `now` must be aware in LOCAL_TZ so weekday/hour reflect the user's clock.
+    Recurring dailies (cadence in {daily, weekly, custom}) fire on every day
+    in their `days` list, at `time`. One-off dailies (cadence: once) fire only
+    when their `date` matches today's London date.
+
+    `now` must be aware so weekday/hour reflect the user's clock.
     """
     out: list[FireEvent] = []
     now_local = now.astimezone(LOCAL_TZ)
     today_idx = now_local.weekday()
-    for p in _iter_md("habits"):
+    today_iso = now_local.strftime("%Y-%m-%d")
+    for p in _iter_md("dailies"):
         post = frontmatter.load(p)
         meta = post.metadata
-        if meta.get("type") != "habit":
+        if meta.get("type") != "daily":
             continue
         if not (meta.get("reminder") or {}).get("enabled", True):
             continue
-        days = [d.lower() for d in meta.get("days") or []]
-        if days and today_idx not in {_DAY_INDEX[d] for d in days if d in _DAY_INDEX}:
-            continue
+        cadence = meta.get("cadence", "daily")
+        if cadence == "once":
+            if meta.get("date") != today_iso:
+                continue
+        else:
+            days = [d.lower() for d in meta.get("days") or []]
+            if days and today_idx not in {_DAY_INDEX[d] for d in days if d in _DAY_INDEX}:
+                continue
         time_s = meta.get("time", "09:00")
         try:
             hh, mm = (int(x) for x in time_s.split(":"))
@@ -181,13 +192,14 @@ def collect_habits(now: datetime) -> list[FireEvent]:
             continue
         fire = now_local.replace(hour=hh, minute=mm, second=0, microsecond=0)
         channels = (meta.get("reminder") or {}).get("channels") or ["ntfy"]
+        body = "one-off" if cadence == "once" else f"{cadence} · {time_s}"
         out.append(
             FireEvent(
                 fire_at=fire,
                 title=f"🌱 {meta['title']}",
-                body=f"daily habit · {time_s}",
+                body=body,
                 channels=channels,
-                source_id=f"habit:{p.stem}:{fire.strftime('%Y-%m-%d')}",
+                source_id=f"daily:{p.stem}:{fire.strftime('%Y-%m-%d')}",
             )
         )
     return out
@@ -198,5 +210,5 @@ def collect_all(now: datetime) -> list[FireEvent]:
         collect_events()
         + collect_project_tasks()
         + collect_standalone_reminders()
-        + collect_habits(now)
+        + collect_dailies(now)
     )

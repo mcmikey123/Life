@@ -1,32 +1,39 @@
 import Link from "next/link";
 import {
-  getEvents,
   getProjects,
-  getHabits,
-  getReminders,
-  getHealthMetrics,
+  getDailies,
+  getDailyLog,
   getCalendar,
 } from "@/lib/vault";
+import { todayLocal, LOCAL_TZ } from "@/lib/tz";
 
 export const revalidate = 30;
 
+function todayDow(): string {
+  // Intl returns "Mon", "Tue", ... in en-US. Lowercase keeps us consistent
+  // with the day-of-week strings stored in vault frontmatter.
+  return new Intl.DateTimeFormat("en-US", { timeZone: LOCAL_TZ, weekday: "short" })
+    .format(new Date())
+    .toLowerCase();
+}
+
 export default function CharacterPage() {
-  const events = getEvents();
   const projects = getProjects();
-  const habits = getHabits();
-  const reminders = getReminders();
-  const metrics = getHealthMetrics();
-  const today = new Date().toISOString().slice(0, 10);
+  const dailies = getDailies();
+  const today = todayLocal();
+  const dow = todayDow();
 
   const upcoming = getCalendar().filter((c) => c.date >= today).slice(0, 12);
-  const pendingReminders = reminders.filter((r) => r.status === "pending").slice(0, 5);
   const activeProjects = projects.filter((p) => p.status === "active");
-  const totalSpend = projects.reduce(
-    (s, p) => s + (p.costs ?? []).reduce((a, c) => a + (c.amount || 0), 0),
-    0
-  );
 
-  // group calendar by date
+  // Today's dailies: one-offs whose date === today, plus recurring whose
+  // days list includes today (or whose days list is empty = every day).
+  const todaysDailies = dailies.filter((d) => {
+    if (d.cadence === "once") return d.date === today;
+    if (!d.days || d.days.length === 0) return true;
+    return d.days.includes(dow);
+  });
+
   const grouped: Record<string, typeof upcoming> = {};
   for (const c of upcoming) (grouped[c.date] ||= []).push(c);
 
@@ -36,31 +43,6 @@ export default function CharacterPage() {
         <h2>Character</h2>
         <p className="subtitle">{today}</p>
       </header>
-
-      <div className="character-grid">
-        <section className="character-stats">
-          <div className="section-divider">Stats</div>
-          <StatLine label="Events" value={events.length} href="/events" />
-          <StatLine label="Reminders pending" value={pendingReminders.length} href="/reminders" />
-          <StatLine label="Active projects" value={activeProjects.length} href="/projects" />
-          <StatLine label="Habits tracked" value={habits.length} href="/habits" />
-          <StatLine label="Project spend" value={`$${totalSpend.toFixed(0)}`} href="/finance" />
-        </section>
-
-        <section className="character-vitals">
-          <div className="section-divider">Vitals</div>
-          {metrics.length === 0 ? (
-            <div className="meta">No metrics tracked. Add some in <Link href="/health">Health</Link>.</div>
-          ) : (
-            metrics.slice(0, 5).map((m) => (
-              <div className="vital" key={m.key}>
-                <span className="label">{m.label}</span>
-                <span className="value">{m.value}{m.unit ? ` ${m.unit}` : ""}</span>
-              </div>
-            ))
-          )}
-        </section>
-      </div>
 
       <div className="section-divider">Calendar — upcoming</div>
       {Object.keys(grouped).length === 0 ? (
@@ -84,6 +66,33 @@ export default function CharacterPage() {
         ))
       )}
 
+      <div className="section-divider">Today{"’"}s Dailies</div>
+      {todaysDailies.length === 0 ? (
+        <div className="empty">
+          Nothing for today. <Link href="/dailies">Add a daily →</Link>
+        </div>
+      ) : (
+        <div className="cal-items">
+          {todaysDailies.map((d) => {
+            const log = getDailyLog(d.slug);
+            const todayEntry = log.find((l) => l.date === today);
+            const status = todayEntry?.status ?? "open";
+            const tone = status === "done" ? "good" : status === "skip" ? "warn" : "";
+            return (
+              <Link
+                key={d.slug}
+                href={`/dailies/${d.slug}`}
+                className={`cal-item kind-${d.cadence === "once" ? "task" : "daily"}`}
+              >
+                {d.time && <span className="cal-time">{d.time}</span>}
+                <span className="cal-title">{d.title}</span>
+                <span className={`badge ${tone}`}>{status}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       <div className="section-divider">Active projects</div>
       {activeProjects.length === 0 ? (
         <div className="empty">No active projects.</div>
@@ -101,23 +110,5 @@ export default function CharacterPage() {
         ))
       )}
     </div>
-  );
-}
-
-function StatLine({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: string | number;
-  href: string;
-}) {
-  return (
-    <Link href={href} className="stat-line">
-      <span className="stat-value">{value}</span>
-      <span className="stat-bar" />
-      <span className="stat-label">{label}</span>
-    </Link>
   );
 }

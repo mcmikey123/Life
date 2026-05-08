@@ -14,15 +14,17 @@ Pick the right folder by intent:
 | "remind me to X at Y"                       | `vault/reminders/`    | reminder   |
 | "start a project / track project X"         | `vault/projects/`     | project    |
 | "add a task to project X"                   | edit project file     | task       |
-| "track a habit / I want to do X every day"  | `vault/habits/`       | habit      |
-| "log that I did/skipped my morning walk"    | `vault/habits/<slug>.log.md` | habit_log |
+| "track a habit / I want to do X every day"  | `vault/dailies/`      | daily (cadence: daily/weekly/custom) |
+| "I need to do X today" (one-off)            | `vault/dailies/`      | daily (cadence: once, with `date`)   |
+| "log that I did/skipped my morning walk"    | `vault/dailies/<slug>.log.md` | daily_log |
 
 ### Filename convention
 
-- Events:    `vault/events/YYYY-MM-DD-<slug>.md`
-- Reminders: `vault/reminders/YYYYMMDD-HHMM-<slug>.md`
-- Projects:  `vault/projects/<slug>.md`
-- Habits:    `vault/habits/<slug>.md`
+- Events:        `vault/events/YYYY-MM-DD-<slug>.md`
+- Reminders:     `vault/reminders/YYYYMMDD-HHMM-<slug>.md`
+- Projects:      `vault/projects/<slug>.md`
+- Dailies (recurring): `vault/dailies/<slug>.md`
+- Dailies (one-off):   `vault/dailies/YYYY-MM-DD-<slug>.md`
 
 `<slug>` = lowercase, hyphenated, no special chars.
 
@@ -33,15 +35,15 @@ Always copy from the matching template in `vault/templates/`:
 - `vault/templates/event.md`
 - `vault/templates/reminder.md`
 - `vault/templates/project.md`
-- `vault/templates/habit.md`
+- `vault/templates/daily.md`
 
 Fill all fields. For `created`, use `datetime.now().isoformat()` truncated to seconds.
 
 ### Time zone — Europe/London everywhere
 
 All wall-clock fields in vault frontmatter (event `date` + `time`, reminder
-`fire_at`, habit `time`, project task `deadline`) are **Europe/London local
-time**, no offset, no `Z`. The scheduler attaches `Europe/London` when parsing
+`fire_at`, daily `time`, daily `date` for one-offs, project task `deadline`)
+are **Europe/London local time**, no offset, no `Z`. The scheduler attaches `Europe/London` when parsing
 and converts to UTC only when comparing against `datetime.now(timezone.utc)`.
 Dashboard forms read and write these strings verbatim — no conversion.
 
@@ -60,8 +62,9 @@ event = `[1d, 1h]`. For a project task = `[3d, 1d]`. Channels default to `[ntfy]
 - "remind me to take meds tonight at 8" → reminder file, fire_at = today 20:00, channels ntfy+discord.
 - "I'm starting a kitchen renovation, budget 8000" → project file with budget.
 - "add a task to garage renovation: get permit, due june 1" → edit `vault/projects/garage-renovation.md`, append to `tasks` array, give it the next `t<N>` id.
-- "I went on my walk this morning" → POST to dashboard `/api/log` OR append a row to `vault/habits/morning-walk.log.md`.
-- "I'm tracking a new habit: drink water every day at 8am" → habit file.
+- "I went on my walk this morning" → POST to dashboard `/api/log` OR append a row to `vault/dailies/morning-walk.log.md`.
+- "I'm tracking a new habit: drink water every day at 8am" → daily file with `cadence: daily`.
+- "I need to call the bank today" → daily file with `cadence: once`, `date: <today>`.
 
 ### Don't ask, just do
 
@@ -85,16 +88,25 @@ exponential backoff (2s, 4s, 8s, 16s).
 If the user has multiple changes queued, batch them in one commit. If the user asks you
 NOT to push (e.g. "draft this for me"), respect that and just leave it locally.
 
-### Habit adherence
+### Daily adherence
 
-Logging done/skip writes a row to `vault/habits/<slug>.log.md` like:
+Logging done/skip writes a row to `vault/dailies/<slug>.log.md` like:
 
 ```
 | 2026-05-05 | done | felt great |
 ```
 
-If the file doesn't exist, create it with the header from `vault/templates/habit.md`
-adherence section (a frontmatter block with `type: habit_log`, then the markdown table header).
+If the file doesn't exist, create it with a frontmatter block:
+
+```
+---
+type: daily_log
+daily: "<slug>"
+---
+
+| date | status | note |
+|------|--------|------|
+```
 
 ### Project costs feed Finance
 

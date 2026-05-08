@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getHabits, getHabitLog } from "@/lib/vault";
+import { getDailies, getDailyLog } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
 export const revalidate = 30;
@@ -38,47 +38,53 @@ function adherence30(log: { date: string; status: string }[]): number {
   return total ? Math.round((done / total) * 100) : 0;
 }
 
-export default function HabitsPage() {
-  const habits = getHabits();
+export default function DailiesPage() {
+  const dailies = getDailies();
 
   return (
     <>
-      <h2>Habits</h2>
-      <p className="subtitle">Daily disciplines · {habits.length} tracked · tap to edit</p>
+      <h2>Dailies</h2>
+      <p className="subtitle">
+        What you{"’"}re working on today · {dailies.length} tracked · tap to edit
+      </p>
 
-      <NewItemForm kind="habit" />
+      <NewItemForm kind="daily" />
 
-      {habits.length === 0 ? (
-        <div className="empty">No habits yet</div>
+      {dailies.length === 0 ? (
+        <div className="empty">No dailies yet</div>
       ) : (
         <div className="skill-grid">
-          {habits.map((h) => {
-            const log = getHabitLog(h.slug);
+          {dailies.map((d) => {
+            const log = getDailyLog(d.slug);
             const s = streak(log);
             const adh = adherence30(log);
             const tone = s >= 7 ? "active" : s >= 3 ? "warn" : "";
+            const isOnce = d.cadence === "once";
             return (
-              <Link href={`/habits/${h.slug}`} key={h.slug} className="card-link">
+              <Link href={`/dailies/${d.slug}`} key={d.slug} className="card-link">
                 <div className="skill-card">
                   <div className={`skill-level-badge ${tone}`}>
                     <div style={{ textAlign: "center" }}>
-                      <div className="skill-level-number">{s}</div>
-                      <div className="skill-level-sub">Streak</div>
+                      <div className="skill-level-number">{isOnce ? "1" : s}</div>
+                      <div className="skill-level-sub">{isOnce ? "Once" : "Streak"}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="skill-name">{h.title}</div>
+                    <div className="skill-name">{d.title}</div>
                     <div className="skill-meta" style={{ marginTop: 6 }}>
-                      {h.cadence}
-                      {h.time ? ` · ${h.time}` : ""}
-                      {h.days?.length ? ` · ${h.days.join("/")}` : ""}
+                      {d.cadence}
+                      {isOnce && d.date ? ` · ${d.date}` : ""}
+                      {d.time ? ` · ${d.time}` : ""}
+                      {!isOnce && d.days?.length ? ` · ${d.days.join("/")}` : ""}
                     </div>
-                    <div className="skill-meta">
-                      {adh}% · 30d
-                      {h.streak_target ? ` · target ${h.streak_target}` : ""}
-                    </div>
-                    {h.linked_health_metric && (
-                      <div className="skill-meta">↳ health: {h.linked_health_metric}</div>
+                    {!isOnce && (
+                      <div className="skill-meta">
+                        {adh}% · 30d
+                        {d.streak_target ? ` · target ${d.streak_target}` : ""}
+                      </div>
+                    )}
+                    {d.linked_health_metric && (
+                      <div className="skill-meta">↳ health: {d.linked_health_metric}</div>
                     )}
                   </div>
                 </div>

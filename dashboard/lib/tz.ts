@@ -1,5 +1,6 @@
 // Storage convention: every wall-clock field in the vault (event date+time,
-// reminder fire_at, habit time, project task deadline) is Europe/London local.
+// reminder fire_at, daily time, daily date for one-offs, project task
+// deadline) is Europe/London local.
 // The dashboard never converts when reading or writing — this helper exists
 // only to compute the *current* London date for time-window filters where the
 // host clock might differ (e.g. Vercel functions run in UTC).

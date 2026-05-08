@@ -106,14 +106,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
   }
 
-  if (kind === "habit") {
-    const slug = slugify(title);
+  if (kind === "daily") {
+    const cadence = body.cadence || "daily";
+    if (cadence === "once" && !body.date) {
+      return NextResponse.json({ error: "date required when cadence=once" }, { status: 400 });
+    }
+    // Slug includes the date for one-offs so two same-titled one-offs don't collide.
+    const slug = cadence === "once" ? `${body.date}-${slugify(title)}` : slugify(title);
     const result = await write(
-      `habits/${slug}.md`,
+      `dailies/${slug}.md`,
       {
-        type: "habit",
+        type: "daily",
         title,
-        cadence: body.cadence || "daily",
+        cadence,
+        date: cadence === "once" ? body.date : "",
         days: csv(body.days, ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
         time: body.time || "08:00",
         reminder: {
@@ -126,7 +132,7 @@ export async function POST(req: NextRequest) {
         created: nowIso(),
       },
       `# ${title}\n\n## Why\n`,
-      `Add habit: ${title}`,
+      `Add daily: ${title}`,
     );
     return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
   }
