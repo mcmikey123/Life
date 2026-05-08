@@ -3,6 +3,7 @@
 import matter from "gray-matter";
 import { revalidatePath } from "next/cache";
 import { readVaultFile, writeVaultFile, vaultRoot } from "./writeVault";
+import { eventLocalToUtc, fireAtLocalToUtc } from "./tz";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -27,8 +28,11 @@ export async function updateEvent(slug: string, form: FormData) {
   const rel = `events/${slug}.md`;
   const { data, content } = load(rel);
   data.title = String(form.get("title") || data.title);
-  data.date = String(form.get("date") || data.date);
-  data.time = String(form.get("time") || data.time);
+  const localDate = String(form.get("date") || data.date);
+  const localTime = String(form.get("time") || data.time || "");
+  const utc = eventLocalToUtc(localDate, localTime);
+  data.date = utc.date;
+  data.time = utc.time;
   data.location = String(form.get("location") || "");
   data.duration_minutes = Number(form.get("duration_minutes") || data.duration_minutes || 60);
   const body = String(form.get("body") || content);
@@ -73,7 +77,8 @@ export async function updateReminder(slug: string, form: FormData) {
   const rel = `reminders/${slug}.md`;
   const { data, content } = load(rel);
   data.title = String(form.get("title") || data.title);
-  data.fire_at = String(form.get("fire_at") || data.fire_at);
+  const localFireAt = String(form.get("fire_at") || "");
+  data.fire_at = localFireAt ? fireAtLocalToUtc(localFireAt) : data.fire_at;
   data.recurrence = String(form.get("recurrence") || "");
   data.status = String(form.get("status") || data.status);
   data.channels = String(form.get("channels") || "ntfy,discord")

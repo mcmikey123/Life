@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { eventUtcToLocal, fireAtUtcToLocal } from "./tz";
 
 const VAULT = path.resolve(process.cwd(), process.env.VAULT_PATH || "../vault");
 
@@ -227,9 +228,10 @@ export function getCalendar(): CalendarItem[] {
   const out: CalendarItem[] = [];
 
   for (const e of getEvents()) {
+    const local = eventUtcToLocal(e.date, e.time);
     out.push({
-      date: e.date,
-      time: e.time,
+      date: local.date,
+      time: local.time || undefined,
       title: e.title,
       kind: "event",
       href: `/events/${e.slug}`,
@@ -251,10 +253,11 @@ export function getCalendar(): CalendarItem[] {
 
   for (const r of getReminders()) {
     if (r.status !== "pending" || !r.fire_at) continue;
-    const [d, t] = r.fire_at.split("T");
+    const local = fireAtUtcToLocal(r.fire_at);
+    const [d, t] = local.split("T");
     out.push({
       date: d,
-      time: t?.slice(0, 5),
+      time: t,
       title: r.title,
       kind: "reminder",
       href: `/reminders/${r.slug}`,

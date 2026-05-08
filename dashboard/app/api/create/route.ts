@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import matter from "gray-matter";
 import { createVaultFile } from "@/lib/vault-write";
+import { eventLocalToUtc, fireAtLocalToUtc } from "@/lib/tz";
 
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "untitled";
@@ -32,16 +33,18 @@ export async function POST(req: NextRequest) {
   if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
 
   if (kind === "event") {
-    const date: string = body.date;
-    if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
-    const slug = `${date}-${slugify(title)}`;
+    const localDate: string = body.date;
+    if (!localDate) return NextResponse.json({ error: "date required" }, { status: 400 });
+    const localTime: string = body.time || "09:00";
+    const { date: utcDate, time: utcTime } = eventLocalToUtc(localDate, localTime);
+    const slug = `${localDate}-${slugify(title)}`;
     const result = await write(
       `events/${slug}.md`,
       {
         type: "event",
         title,
-        date,
-        time: body.time || "09:00",
+        date: utcDate,
+        time: utcTime,
         duration_minutes: Number(body.duration_minutes) || 60,
         location: body.location || "",
         tags: csv(body.tags),
@@ -52,22 +55,23 @@ export async function POST(req: NextRequest) {
         created: nowIso(),
       },
       `# ${title}\n`,
-      `Add event: ${title} on ${date}`,
+      `Add event: ${title} on ${localDate}`,
     );
     return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
   }
 
   if (kind === "reminder") {
-    const fireAt: string = body.fire_at;
-    if (!fireAt) return NextResponse.json({ error: "fire_at required" }, { status: 400 });
-    const stamp = fireAt.replace(/[:\-]/g, "").replace("T", "-").slice(0, 13);
+    const localFireAt: string = body.fire_at;
+    if (!localFireAt) return NextResponse.json({ error: "fire_at required" }, { status: 400 });
+    const utcFireAt = fireAtLocalToUtc(localFireAt);
+    const stamp = localFireAt.replace(/[:\-]/g, "").replace("T", "-").slice(0, 13);
     const slug = `${stamp}-${slugify(title)}`;
     const result = await write(
       `reminders/${slug}.md`,
       {
         type: "reminder",
         title,
-        fire_at: fireAt,
+        fire_at: utcFireAt,
         recurrence: body.recurrence || "",
         channels: csv(body.channels, ["ntfy", "discord"]),
         status: "pending",
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
         created: nowIso(),
       },
       `# ${title}\n`,
-      `Add reminder: ${title} @ ${fireAt}`,
+      `Add reminder: ${title} @ ${localFireAt}`,
     );
     return NextResponse.json(result, { status: "error" in result ? 409 : 200 });
   }

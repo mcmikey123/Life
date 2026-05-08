@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getReminder } from "@/lib/vault";
+import { fireAtUtcToLocal } from "@/lib/tz";
 import { updateReminder } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +15,7 @@ export default function ReminderDetail({ params }: { params: { slug: string } })
     await updateReminder(params.slug, form);
   };
 
-  // ISO 8601 → datetime-local input value
-  const dt = r.fire_at?.length >= 16 ? r.fire_at.slice(0, 16) : r.fire_at || "";
+  const dt = fireAtUtcToLocal(r.fire_at);
 
   return (
     <>

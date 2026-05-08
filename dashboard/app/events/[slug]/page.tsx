@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getEvent } from "@/lib/vault";
+import { eventUtcToLocal } from "@/lib/tz";
 import { updateEvent, deleteEvent } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export default function EventDetail({ params }: { params: { slug: string } }) {
   const e = getEvent(params.slug);
   if (!e) notFound();
+  const local = eventUtcToLocal(e.date, e.time);
 
   const update = async (form: FormData) => {
     "use server";
@@ -28,8 +30,8 @@ export default function EventDetail({ params }: { params: { slug: string } }) {
       <form action={update} className="form-card">
         <label>Title<input name="title" defaultValue={e.title} required /></label>
         <div className="form-row">
-          <label>Date<input name="date" type="date" defaultValue={e.date} required /></label>
-          <label>Time<input name="time" type="time" defaultValue={e.time || ""} /></label>
+          <label>Date<input name="date" type="date" defaultValue={local.date} required /></label>
+          <label>Time<input name="time" type="time" defaultValue={local.time || ""} /></label>
           <label>Duration (min)<input name="duration_minutes" type="number" defaultValue={e.duration_minutes || 60} /></label>
         </div>
         <label>Location<input name="location" defaultValue={e.location || ""} /></label>
