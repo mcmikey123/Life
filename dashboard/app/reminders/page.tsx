@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getReminders, getEvents, getProjects } from "@/lib/vault";
 import NewItemForm from "../_components/NewItemForm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 type FlatReminder = {
   source: string;

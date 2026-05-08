@@ -1,6 +1,6 @@
 import { aggregateProjectCosts } from "@/lib/vault";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const STUB_TX = [
   { date: "May 6, 2026",  desc: "Coffee Shop",     cat: "Food",      amount: -6.50,    status: "Complete" },

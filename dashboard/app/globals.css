@@ -40,7 +40,7 @@ button { cursor: pointer; }
   inset: 0;
   background:
     linear-gradient(90deg, rgba(4, 7, 8, .25), rgba(21, 72, 83, .15)),
-    url("/world-bg.png") center/cover no-repeat;
+    url("/world-bg.webp") center/cover no-repeat;
   filter: saturate(1.08) contrast(1.02);
   transform: scale(1.01);
   z-index: 0;
@@ -128,22 +128,34 @@ button { cursor: pointer; }
   color: #d9d6c8;
   text-shadow: 0 0 10px rgba(255,255,255,.25);
   cursor: pointer;
-  transition: transform .2s ease;
+  transition: transform .2s ease, color .2s ease, text-shadow .2s ease;
   user-select: none;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
 }
 
 .settings:hover { transform: rotate(20deg); }
+.settings.active {
+  color: var(--gold, #d4af37);
+  text-shadow: 0 0 14px rgba(212, 175, 55, .65);
+  transform: rotate(45deg);
+}
 
 /* ======================  SCREEN / PANEL  ====================== */
 .screen {
   position: relative;
   height: calc(100vh - 82px);
-  padding: 22px 110px 56px;
+  padding: 22px 40px 56px;
   z-index: 3;
 }
 
 .panel {
   height: 100%;
+  max-width: 1230px;
+  width: 100%;
+  margin: 0 auto;
   position: relative;
   border: 1px solid rgba(96, 165, 204, .26);
   background:
@@ -1082,54 +1094,113 @@ button:hover, .new-btn:hover {
 }
 .stepper.pending { opacity: 0.6; }
 
-/* ---- activity feed (bottom-left floating) ---- */
+/* ---- activity feed styled as global chat (bottom-left floating) ---- */
 .feed {
-  position: fixed; bottom: 16px; left: 240px;
-  width: 340px;
-  background: rgba(14, 15, 19, 0.92);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  position: fixed; bottom: 52px; left: 16px;
+  width: 360px;
+  background: rgba(8, 10, 14, 0.55);
+  border: none;
+  border-radius: 0;
   z-index: 50;
-  font-size: 12px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-  transition: border-color 0.4s;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: none;
+  transition: opacity 0.4s;
 }
-.feed.flash { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,0.25), 0 4px 24px rgba(0,0,0,0.4); }
-.feed.closed { width: auto; }
+.feed.flash .chat-msg:first-child { color: #fff6d8; }
+.feed.closed { width: auto; background: rgba(8,10,14,.7); border-radius: 4px; }
 .feed-header {
   width: 100%;
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px;
-  background: none; border: none; border-bottom: 1px solid var(--border);
-  color: var(--gold); font-weight: 700; letter-spacing: 2px;
+  padding: 6px 12px;
+  background: none; border: none;
+  color: rgba(232, 228, 212, .55); font-weight: 700; letter-spacing: 3px;
   cursor: pointer; text-align: left;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
 }
+.feed-header:hover { color: rgba(232, 228, 212, .85); background: none; box-shadow: none; transform: none; }
 .feed.closed .feed-header { border-bottom: none; }
-.feed-title { flex: 1; font-size: 11px; }
-.feed-count { color: var(--muted); font-size: 11px; font-weight: 400; letter-spacing: 0.5px; }
-.feed-toggle { color: var(--muted); font-size: 14px; font-weight: 400; }
+.feed-title { flex: 1; font-size: 10px; }
+.feed-count { color: rgba(232, 228, 212, .35); font-size: 10px; font-weight: 400; letter-spacing: 0.5px; }
+.feed-toggle { color: rgba(232, 228, 212, .55); font-size: 14px; font-weight: 400; }
 .feed-body {
-  max-height: 240px; overflow-y: auto;
+  max-height: 320px; overflow-y: auto;
   padding: 4px 0;
+  display: flex; flex-direction: column-reverse;
 }
-.feed-body::-webkit-scrollbar { width: 6px; }
-.feed-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.feed-body::-webkit-scrollbar { width: 4px; }
+.feed-body::-webkit-scrollbar-track { background: transparent; }
+.feed-body::-webkit-scrollbar-thumb { background: rgba(232, 228, 212, .15); border-radius: 2px; }
+
 .feed-row {
-  display: flex; gap: 10px; padding: 5px 12px;
-  align-items: baseline;
-  border-left: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 10px;
+  border-left: 3px solid transparent;
 }
-.feed-row:hover { background: rgba(255,255,255,0.02); }
-.feed-time { color: var(--muted); flex: 0 0 64px; font-size: 10px; font-variant-numeric: tabular-nums; }
-.feed-msg { flex: 1; word-break: break-word; line-height: 1.4; color: var(--text); font-size: 12px; }
-.feed-row.kind-event    { border-left-color: var(--accent); }
-.feed-row.kind-reminder { border-left-color: var(--good); }
-.feed-row.kind-habit    { border-left-color: var(--gold); }
-.feed-row.kind-project  { border-left-color: var(--warn); }
-.feed-row.kind-health   { border-left-color: var(--bad); }
-.feed-empty { color: var(--muted); padding: 12px; text-align: center; font-size: 11px; }
+.feed-row:hover { background: rgba(255,255,255,0.03); }
+
+.chat-msg {
+  font-weight: 700;
+  font-size: 14px;
+  color: #f4f0df;
+  line-height: 1.25;
+  letter-spacing: .01em;
+  text-shadow: 0 1px 3px rgba(0,0,0,.95);
+  word-break: break-word;
+  text-transform: none;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+.chat-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(232, 228, 212, .58);
+  text-shadow: 0 1px 2px rgba(0,0,0,.9);
+  letter-spacing: .02em;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  text-transform: none;
+}
+.chat-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #6ee27a;
+  box-shadow: 0 0 6px rgba(110, 226, 122, .55);
+  flex-shrink: 0;
+}
+.chat-user {
+  color: rgba(232, 228, 212, .85);
+  font-weight: 500;
+}
+.chat-channel {
+  color: rgba(232, 228, 212, .5);
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+.chat-time {
+  color: rgba(232, 228, 212, .35);
+  font-size: 10px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-row.kind-event    { border-left-color: rgba(124, 156, 255, .8); }
+.feed-row.kind-event    .chat-dot { background: #7c9cff; box-shadow: 0 0 6px rgba(124,156,255,.6); }
+.feed-row.kind-reminder { border-left-color: rgba(123, 217, 161, .8); }
+.feed-row.kind-reminder .chat-dot { background: #7bd9a1; box-shadow: 0 0 6px rgba(123,217,161,.6); }
+.feed-row.kind-habit    { border-left-color: rgba(200, 164, 78, .8); }
+.feed-row.kind-habit    .chat-dot { background: #c8a44e; box-shadow: 0 0 6px rgba(200,164,78,.6); }
+.feed-row.kind-project  { border-left-color: rgba(224, 181, 99, .8); }
+.feed-row.kind-project  .chat-dot { background: #e0b563; box-shadow: 0 0 6px rgba(224,181,99,.6); }
+.feed-row.kind-health   { border-left-color: rgba(224, 126, 126, .8); }
+.feed-row.kind-health   .chat-dot { background: #e07e7e; box-shadow: 0 0 6px rgba(224,126,126,.6); }
+
+.feed-empty { color: rgba(232, 228, 212, .4); padding: 12px; text-align: center; font-size: 11px; }
 
 /* on small screens, push feed to bottom of screen full-width-ish */
 @media (max-width: 720px) {
@@ -1152,14 +1223,114 @@ button:hover, .new-btn:hover {
 .player-controls button:hover { border-color: var(--accent); }
 .player input[type="range"] { width: 100%; accent-color: var(--gold); }
 
-/* music player floats top-right of the screen, mirroring the activity feed at bottom-left */
+/* music player: hidden by default, shown when settings cog is toggled on.
+   Sits at bottom-right, mirroring the activity feed at bottom-left. */
 .player-float {
   position: fixed;
-  top: 110px;
-  right: 24px;
+  bottom: 52px;
+  right: 16px;
   width: 240px;
-  z-index: 40;
+  z-index: 60;
 }
+
+/* ---- quests panel (top-right floating, in-game quest tracker style) ---- */
+.quests-float {
+  position: fixed;
+  top: 110px;
+  right: 22px;
+  width: 280px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  z-index: 45;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  padding: 0;
+  pointer-events: none;
+}
+.quests-empty {
+  pointer-events: auto;
+  color: rgba(232, 228, 212, .55);
+  font-size: 11px;
+  padding: 8px 4px;
+  line-height: 1.5;
+  text-shadow: 0 1px 3px rgba(0,0,0,.95);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+.quests-empty a { color: var(--gold-soft); text-decoration: none; }
+.quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quests-row {
+  pointer-events: auto;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  padding: 0;
+}
+.quests-row-title {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f5c95a;
+  letter-spacing: .01em;
+  margin-bottom: 2px;
+  line-height: 1.2;
+  text-shadow:
+    0 0 1px rgba(0,0,0,.95),
+    0 1px 2px rgba(0,0,0,.95),
+    0 2px 4px rgba(0,0,0,.85);
+}
+.quests-row-desc {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e8e2cf;
+  line-height: 1.35;
+  letter-spacing: .005em;
+  text-shadow:
+    0 0 1px rgba(0,0,0,.95),
+    0 1px 2px rgba(0,0,0,.95),
+    0 2px 4px rgba(0,0,0,.85);
+}
+.quests-row:hover .quests-row-title { color: #ffe08a; }
+.quests-row:hover .quests-row-desc { color: #ffffff; }
+
+/* ============ MOBILE / RESPONSIVE ============ */
+@media (max-width: 900px) {
+  .screen { padding: 14px 12px 48px; }
+  .panel { max-width: 100%; }
+  .content { padding: 22px 18px 24px; }
+  .quests-float { display: none; }
+}
+
 @media (max-width: 720px) {
-  .player-float { display: none; }
+  .top-nav { height: 56px; padding: 0 12px; }
+  .nav-items { gap: 18px; height: 56px; overflow-x: auto; justify-content: flex-start; }
+  .nav-items::-webkit-scrollbar { display: none; }
+  .nav-item { padding-top: 18px; font-size: 12px; letter-spacing: .15em; white-space: nowrap; }
+  .nav-item.active::after { width: 80px; bottom: -2px; }
+  .nav-item .diamond { display: none; }
+  .settings { margin-top: 10px; margin-left: 10px; font-size: 22px; }
+
+  .screen { height: calc(100vh - 56px); padding: 8px 6px 44px; }
+  .content { padding: 16px 14px 20px; font-size: 14px; }
+
+  .sub-tabs { height: 52px; padding: 0 10px; gap: 16px; overflow-x: auto; justify-content: flex-start; }
+  .sub-tabs::-webkit-scrollbar { display: none; }
+  .tab { font-size: 12px; letter-spacing: .12em; }
+  .tab.active::after { bottom: -18px; width: 70px; }
+  .tab .diamond { display: none; }
+
+  .xp-bar { height: 28px; padding: 0 12px; gap: 10px; }
+  .feed { left: 8px; right: 8px; width: auto; bottom: 38px; max-height: 180px; }
+  .feed-body { max-height: 130px; }
+  .player-float { left: 8px; right: 8px; bottom: 38px; width: auto; }
+
+  /* When music is shown on mobile, it would clash with the feed at bottom.
+     Put it just above the feed so they don't overlap. */
+  .player-float { bottom: calc(38px + 200px); }
 }

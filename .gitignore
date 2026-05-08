@@ -22,3 +22,6 @@ logs/
 *.tmp
 .idea/
 .vscode/
+.vercel
+.env*.local
+scheduler/.state.json

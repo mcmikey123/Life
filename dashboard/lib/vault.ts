@@ -66,6 +66,19 @@ export type HabitItem = {
   body: string;
 };
 
+export type QuestItem = {
+  slug: string;
+  type: "quest";
+  title: string;
+  status: string;
+  horizon?: string;
+  deadline?: string;
+  progress?: number;
+  linked_projects?: string[];
+  tags?: string[];
+  body: string;
+};
+
 export type ReminderItem = {
   slug: string;
   type: "reminder";
@@ -109,6 +122,16 @@ export function getHabits(): HabitItem[] {
   return readFolder("habits")
     .map((h) => ({ slug: h.slug, body: h.body, ...(h.data as any) }) as HabitItem)
     .filter((h) => h.type === "habit");
+}
+
+export function getQuests(): QuestItem[] {
+  return readFolder("quests")
+    .map((q) => ({ slug: q.slug, body: q.body, ...(q.data as any) }) as QuestItem)
+    .filter((q) => q.type === "quest");
+}
+
+export function getQuest(slug: string): QuestItem | null {
+  return getQuests().find((q) => q.slug === slug) ?? null;
 }
 
 export function getReminders(): ReminderItem[] {

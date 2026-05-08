@@ -2,15 +2,12 @@
 type: dashboard_config
 music:
   tracks:
-    # Add tracks the dashboard will play in the background. Each entry needs:
-    #   - title: optional display label
-    #   - src:   absolute URL OR a path inside dashboard/public/ (e.g. /music/foo.mp3)
-    #
-    # Examples (uncomment to use, replace URLs):
-    # - title: "Lo-fi study mix"
-    #   src: "https://example.com/lofi.mp3"
-    # - title: "Local track"
-    #   src: "/music/track1.mp3"
+    - title: "Fury Bay Panorama"
+      src: "/music/01 - Fury Bay Panorama.mp3"
+    - title: "Pride of Crato"
+      src: "/music/06 - Pride of Crato.mp3"
+    - title: "Stoutmarch Panorama"
+      src: "/music/57 - Stoutmarch Panorama.mp3"
 ---
 
 # Dashboard config
