@@ -20,13 +20,13 @@ metrics:
     min: 0
   - key: fat_target
     label: Fat target
-    value: 45
+    value: 200
     unit: g
     step: 5
     min: 0
   - key: steps_target
     label: Steps target
-    value: 10000
+    value: 15000
     unit: ''
     step: 500
     min: 0
@@ -68,6 +68,6 @@ to this file. Add or remove metrics by editing the `metrics:` list directly.
 
 - Calories: 1900 kcal/day
 - Protein: 150g (assumed default — adjust via stepper)
-- Fat: 45g
+- Fat: 200g
 - Carbs: remainder
-- Steps target: 10,000/day
+- Steps target: 15,000/day
