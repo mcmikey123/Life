@@ -1,7 +1,7 @@
 ---
 type: reminder
 title: "Discord smoke test"
-fire_at: "2026-05-09T22:20:03"
+fire_at: "2026-05-09T23:23:26"
 recurrence: ""
 channels: [ntfy, discord]
 status: pending
