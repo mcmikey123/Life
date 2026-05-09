@@ -3,9 +3,33 @@ type: health_metrics
 metrics:
   - key: weight
     label: Weight
-    value: 180
+    value: 219
     unit: lbs
     step: 1
+  - key: calories_target
+    label: Calorie target
+    value: 1900
+    unit: kcal
+    step: 50
+    min: 0
+  - key: protein_target
+    label: Protein target
+    value: 150
+    unit: g
+    step: 5
+    min: 0
+  - key: fat_target
+    label: Fat target
+    value: 45
+    unit: g
+    step: 5
+    min: 0
+  - key: steps_target
+    label: Steps target
+    value: 10000
+    unit: ''
+    step: 500
+    min: 0
   - key: sleep
     label: Sleep last night
     value: 7
@@ -39,3 +63,11 @@ metrics:
 
 Edit values via the stepper arrows on the Health tab — each click writes a commit
 to this file. Add or remove metrics by editing the `metrics:` list directly.
+
+## Cutting macros
+
+- Calories: 1900 kcal/day
+- Protein: 150g (assumed default — adjust via stepper)
+- Fat: 45g
+- Carbs: remainder
+- Steps target: 10,000/day
