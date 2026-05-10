@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getDailies, getDailyLog } from "@/lib/vault";
+import { todayLocal } from "@/lib/tz";
 import NewItemForm from "../_components/NewItemForm";
+import DoneTick from "../_components/DoneTick";
 
 export const revalidate = 30;
 
@@ -40,6 +42,7 @@ function adherence30(log: { date: string; status: string }[]): number {
 
 export default function DailiesPage() {
   const dailies = getDailies();
+  const today = todayLocal();
 
   return (
     <>
@@ -60,9 +63,11 @@ export default function DailiesPage() {
             const adh = adherence30(log);
             const tone = s >= 7 ? "active" : s >= 3 ? "warn" : "";
             const isOnce = d.cadence === "once";
+            const doneToday = log.some((l) => l.date === today && l.status === "done");
             return (
               <Link href={`/dailies/${d.slug}`} key={d.slug} className="card-link">
                 <div className="skill-card">
+                  <DoneTick slug={d.slug} date={today} initialDone={doneToday} />
                   <div className={`skill-level-badge ${tone}`}>
                     <div style={{ textAlign: "center" }}>
                       <div className="skill-level-number">{isOnce ? "1" : s}</div>

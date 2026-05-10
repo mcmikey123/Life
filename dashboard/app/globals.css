@@ -287,6 +287,7 @@ button { cursor: pointer; }
 }
 
 .skill-card {
+  position: relative;
   border: 2px solid rgba(96, 165, 204, .35);
   background: rgba(15, 25, 40, .8);
   padding: 20px 16px;
@@ -298,6 +299,41 @@ button { cursor: pointer; }
   gap: 14px;
   text-decoration: none;
   color: inherit;
+}
+
+.daily-tick {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(96, 165, 204, .5);
+  background: rgba(15, 25, 40, .9);
+  color: var(--gold-soft);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 2;
+}
+.daily-tick:hover:not(:disabled) {
+  border-color: var(--ice);
+  box-shadow: 0 0 10px rgba(130, 223, 248, .4);
+}
+.daily-tick.done {
+  background: rgba(40, 90, 60, .85);
+  border-color: rgba(120, 200, 140, .65);
+  color: #c8f0d4;
+  cursor: default;
+}
+.daily-tick.pending {
+  opacity: .6;
+  cursor: progress;
 }
 
 .skill-card:hover {
