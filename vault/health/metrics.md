@@ -3,7 +3,7 @@ type: health_metrics
 metrics:
   - key: weight
     label: Weight
-    value: 180
+    value: 219
     unit: lbs
     step: 1
   - key: sleep
