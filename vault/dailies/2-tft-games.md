@@ -11,7 +11,7 @@ days:
   - fri
   - sat
   - sun
-time: '08:00'
+time: '20:30'
 reminder:
   channels:
     - ntfy
