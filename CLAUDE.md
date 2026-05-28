@@ -17,6 +17,7 @@ Pick the right folder by intent:
 | "track a habit / I want to do X every day"  | `vault/dailies/`      | daily (cadence: daily/weekly/custom) |
 | "I need to do X today" (one-off)            | `vault/dailies/`      | daily (cadence: once, with `date`)   |
 | "log that I did/skipped my morning walk"    | `vault/dailies/<slug>.log.md` | daily_log |
+| "put me on a cut / maintenance / bulk"      | edit `vault/health/nutrition.md` | nutrition (set `phase`) |
 
 ### Filename convention
 
@@ -112,6 +113,20 @@ daily: "<slug>"
 
 When the user logs a project expense ("spent $200 on lumber for the garage"), append to
 the `costs` array in the project's frontmatter. The Finance tab aggregates from there.
+
+### Morning report
+
+The **Today** tab (`dashboard/app/today/`) is the daily landing page: it aggregates
+today's events, the daily plan (today's dailies), reminders + task deadlines due today,
+the active nutrition target, and active quests. The scheduler also pushes the same digest
+once each morning.
+
+- Calorie/macro targets live in `vault/health/nutrition.md` — one active `phase`
+  (`cut`/`maintenance`/`bulk`) plus a numbers block per phase. Switching diet is a
+  one-field change to `phase`. Template: `vault/templates/nutrition.md`.
+- The morning push is configured by `vault/morning-report.md` (`enabled`, `time`,
+  `channels`, `greeting`). Edit that file to retime or silence the push; the Today tab
+  stays available regardless.
 
 ### What you should NOT do
 

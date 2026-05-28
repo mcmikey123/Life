@@ -201,6 +201,60 @@ export function getHealthMetrics(): HealthMetric[] {
   return (data.metrics as HealthMetric[]) ?? [];
 }
 
+// ---- nutrition (diet phase + calorie/macro targets) ----
+
+export type NutritionTargets = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+};
+
+export type Nutrition = {
+  phase: string;
+  phases: Record<string, NutritionTargets>;
+  /** Resolved target for the active phase (falls back to the first phase). */
+  target: NutritionTargets;
+};
+
+export function getNutrition(): Nutrition | null {
+  const file = path.join(VAULT, "health", "nutrition.md");
+  if (!fs.existsSync(file)) return null;
+  const { data } = matter(fs.readFileSync(file, "utf8"));
+  const phases = (data.phases as Record<string, NutritionTargets>) ?? {};
+  const phase = (data.phase as string) || Object.keys(phases)[0] || "";
+  const target = phases[phase] ?? Object.values(phases)[0];
+  if (!target) return null;
+  return { phase, phases, target };
+}
+
+// ---- morning report config ----
+
+export type MorningReportConfig = {
+  enabled: boolean;
+  time: string;
+  channels: string[];
+  greeting: string;
+};
+
+export function getMorningReport(): MorningReportConfig {
+  const file = path.join(VAULT, "morning-report.md");
+  const fallback: MorningReportConfig = {
+    enabled: true,
+    time: "07:00",
+    channels: ["ntfy"],
+    greeting: "Good morning.",
+  };
+  if (!fs.existsSync(file)) return fallback;
+  const { data } = matter(fs.readFileSync(file, "utf8"));
+  return {
+    enabled: data.enabled ?? fallback.enabled,
+    time: data.time ?? fallback.time,
+    channels: (data.channels as string[]) ?? fallback.channels,
+    greeting: data.greeting ?? fallback.greeting,
+  };
+}
+
 // ---- dashboard config (music tracks etc) ----
 
 export type DashboardConfig = {

@@ -71,6 +71,21 @@ def parse_datetime(date: str, time: str | None = None) -> datetime | None:
     return naive.replace(tzinfo=LOCAL_TZ)
 
 
+def _d10(v: object) -> str:
+    """First 10 chars of a date-ish value (handles str, date, datetime)."""
+    return str(v or "")[:10]
+
+
+def _load_one(relpath: str) -> dict | None:
+    p = VAULT_PATH / relpath
+    if not p.exists():
+        return None
+    try:
+        return frontmatter.load(p).metadata
+    except Exception:
+        return None
+
+
 def _iter_md(folder: str):
     d = VAULT_PATH / folder
     if not d.exists():
@@ -205,10 +220,146 @@ def collect_dailies(now: datetime) -> list[FireEvent]:
     return out
 
 
+def get_nutrition_target() -> tuple[str, dict] | None:
+    """Return (active_phase, targets) from health/nutrition.md, or None."""
+    meta = _load_one("health/nutrition.md")
+    if not meta:
+        return None
+    phases = meta.get("phases") or {}
+    phase = meta.get("phase") or next(iter(phases), "")
+    target = phases.get(phase) or next(iter(phases.values()), None)
+    if not target:
+        return None
+    return phase, target
+
+
+def get_morning_report_config() -> dict:
+    meta = _load_one("morning-report.md") or {}
+    return {
+        "enabled": meta.get("enabled", True),
+        "time": meta.get("time", "07:00"),
+        "channels": meta.get("channels") or ["ntfy"],
+        "greeting": meta.get("greeting", "Good morning."),
+    }
+
+
+def build_morning_report_body(now: datetime) -> str:
+    """Assemble the morning digest: events, daily plan, agenda, fuel, goals."""
+    now_local = now.astimezone(LOCAL_TZ)
+    today_iso = now_local.strftime("%Y-%m-%d")
+    today_idx = now_local.weekday()
+    lines: list[str] = []
+
+    events: list[str] = []
+    for p in _iter_md("events"):
+        meta = frontmatter.load(p).metadata
+        if meta.get("type") != "event" or _d10(meta.get("date")) != today_iso:
+            continue
+        s = f"{meta.get('time') or ''} {meta.get('title')}".strip()
+        if meta.get("location"):
+            s += f" @ {meta.get('location')}"
+        events.append(s)
+    if events:
+        lines.append("📅 On today")
+        lines += [f"• {e}" for e in sorted(events)]
+        lines.append("")
+
+    dailies: list[str] = []
+    for p in _iter_md("dailies"):
+        meta = frontmatter.load(p).metadata
+        if meta.get("type") != "daily":
+            continue
+        cadence = meta.get("cadence", "daily")
+        if cadence == "once":
+            if _d10(meta.get("date")) != today_iso:
+                continue
+        else:
+            days = [d.lower() for d in meta.get("days") or []]
+            if days and today_idx not in {_DAY_INDEX[d] for d in days if d in _DAY_INDEX}:
+                continue
+        dailies.append(str(meta.get("title") or p.stem))
+    if dailies:
+        lines.append("✅ Daily plan")
+        lines += [f"• {d}" for d in dailies]
+        lines.append("")
+
+    agenda: list[str] = []
+    for p in _iter_md("reminders"):
+        meta = frontmatter.load(p).metadata
+        if meta.get("type") != "reminder" or meta.get("status") != "pending":
+            continue
+        fa = str(meta.get("fire_at") or "")
+        if _d10(fa) != today_iso:
+            continue
+        t = fa[11:16] if len(fa) >= 16 else ""
+        agenda.append(f"{t} {meta.get('title')}".strip())
+    for p in _iter_md("projects"):
+        meta = frontmatter.load(p).metadata
+        if meta.get("type") != "project":
+            continue
+        for tk in meta.get("tasks") or []:
+            if tk.get("done"):
+                continue
+            if _d10(tk.get("deadline")) == today_iso:
+                agenda.append(f"{meta.get('title')}: {tk.get('title')} (due)")
+    if agenda:
+        lines.append("🔔 Reminders & deadlines")
+        lines += [f"• {a}" for a in agenda]
+        lines.append("")
+
+    nut = get_nutrition_target()
+    if nut:
+        phase, target = nut
+        lines.append("🍽 Fuel")
+        lines.append(
+            f"• {phase}: {target.get('calories')} kcal "
+            f"(P{target.get('protein')} / C{target.get('carbs')} / F{target.get('fats')})"
+        )
+        lines.append("")
+
+    goals: list[str] = []
+    for p in _iter_md("quests"):
+        meta = frontmatter.load(p).metadata
+        if meta.get("type") != "quest" or meta.get("status") != "active":
+            continue
+        dl = meta.get("deadline")
+        goals.append(f"{meta.get('title')}" + (f" (by {dl})" if dl else ""))
+    if goals:
+        lines.append("🎯 Goals in play")
+        lines += [f"• {g}" for g in goals]
+        lines.append("")
+
+    return "\n".join(lines).strip() or "Nothing scheduled. Make today count."
+
+
+def collect_morning_report(now: datetime) -> list[FireEvent]:
+    """One digest per day, fired at the configured morning time."""
+    cfg = get_morning_report_config()
+    if not cfg.get("enabled", True):
+        return []
+    now_local = now.astimezone(LOCAL_TZ)
+    try:
+        hh, mm = (int(x) for x in str(cfg.get("time", "07:00")).split(":"))
+    except ValueError:
+        return []
+    fire = now_local.replace(hour=hh, minute=mm, second=0, microsecond=0)
+    today_iso = now_local.strftime("%Y-%m-%d")
+    return [
+        FireEvent(
+            fire_at=fire,
+            title=f"☀️ {cfg.get('greeting', 'Good morning.')}",
+            body=build_morning_report_body(now),
+            channels=cfg.get("channels") or ["ntfy"],
+            source_id=f"morning-report:{today_iso}",
+        )
+    ]
+
+
 def collect_all(now: datetime) -> list[FireEvent]:
     return (
         collect_events()
         + collect_project_tasks()
         + collect_standalone_reminders()
         + collect_dailies(now)
+        + collect_morning_report(now)
     )
