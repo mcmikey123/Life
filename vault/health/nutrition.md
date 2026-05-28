@@ -3,7 +3,7 @@ type: nutrition
 phase: cut
 phases:
   cut:
-    calories: 2200
+    calories: 1900
     protein: 210
     carbs: 160
     fats: 60

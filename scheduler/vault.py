@@ -15,6 +15,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import frontmatter
+import requests
 
 VAULT_PATH = Path(os.environ.get("VAULT_PATH", Path(__file__).resolve().parent.parent / "vault"))
 
@@ -240,15 +241,71 @@ def get_morning_report_config() -> dict:
         "time": meta.get("time", "07:00"),
         "channels": meta.get("channels") or ["ntfy"],
         "greeting": meta.get("greeting", "Good morning."),
+        "weather": meta.get("weather"),
     }
 
 
-def build_morning_report_body(now: datetime) -> str:
-    """Assemble the morning digest: events, daily plan, agenda, fuel, goals."""
+# WMO weather interpretation codes → short text (open-meteo.com/en/docs).
+_WMO = {
+    0: "clear", 1: "mainly clear", 2: "partly cloudy", 3: "overcast",
+    45: "fog", 48: "rime fog",
+    51: "light drizzle", 53: "drizzle", 55: "heavy drizzle",
+    56: "freezing drizzle", 57: "freezing drizzle",
+    61: "light rain", 63: "rain", 65: "heavy rain",
+    66: "freezing rain", 67: "freezing rain",
+    71: "light snow", 73: "snow", 75: "heavy snow", 77: "snow grains",
+    80: "rain showers", 81: "rain showers", 82: "violent rain showers",
+    85: "snow showers", 86: "snow showers",
+    95: "thunderstorm", 96: "thunderstorm w/ hail", 99: "thunderstorm w/ hail",
+}
+
+
+def get_weather(cfg: dict) -> str | None:
+    """Today's forecast line for the configured location, or None if unavailable."""
+    w = cfg.get("weather")
+    if not w:
+        return None
+    label = w.get("label", "")
+    try:
+        r = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": w.get("latitude"),
+                "longitude": w.get("longitude"),
+                "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+                "timezone": "Europe/London",
+                "forecast_days": 1,
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        d = r.json().get("daily", {})
+        code = (d.get("weather_code") or [None])[0]
+        tmax = (d.get("temperature_2m_max") or [None])[0]
+        tmin = (d.get("temperature_2m_min") or [None])[0]
+        pop = (d.get("precipitation_probability_max") or [None])[0]
+    except (requests.RequestException, ValueError, KeyError, IndexError):
+        return None
+    if tmax is None or tmin is None:
+        return None
+    desc = _WMO.get(code, "")
+    line = f"{label} · {desc}, {round(tmin)}–{round(tmax)}°C".replace(" · , ", " · ")
+    if pop is not None:
+        line += f", {pop}% rain"
+    return line
+
+
+def build_morning_report_body(now: datetime, cfg: dict | None = None) -> str:
+    """Assemble the morning digest: weather, events, daily plan, agenda, fuel, goals."""
     now_local = now.astimezone(LOCAL_TZ)
     today_iso = now_local.strftime("%Y-%m-%d")
     today_idx = now_local.weekday()
     lines: list[str] = []
+
+    weather = get_weather(cfg or {})
+    if weather:
+        lines.append(f"🌤 {weather}")
+        lines.append("")
 
     events: list[str] = []
     for p in _iter_md("events"):
@@ -348,7 +405,7 @@ def collect_morning_report(now: datetime) -> list[FireEvent]:
         FireEvent(
             fire_at=fire,
             title=f"☀️ {cfg.get('greeting', 'Good morning.')}",
-            body=build_morning_report_body(now),
+            body=build_morning_report_body(now, cfg),
             channels=cfg.get("channels") or ["ntfy"],
             source_id=f"morning-report:{today_iso}",
         )
